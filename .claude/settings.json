@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Cloudflare_Developer_Platform__search_cloudflare_documentation",
+      "WebSearch",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --app --src-dir --no-turbopack --no-import-alias --use-npm)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --app --src-dir --no-turbopack --no-import-alias --use-npm --eslint)",
+      "Bash(yes \"\")",
+      "Bash(ls /Users/pavelrapoport/Documents/GitHub/pavelrapoport.com/*.md)",
+      "Bash(curl -sL -o inter-variable.woff2 \"https://github.com/rsms/inter/raw/master/docs/font-files/InterVariable.woff2\")",
+      "Bash(curl -sL -o lora-variable.woff2 \"https://github.com/google/fonts/raw/main/ofl/lora/Lora%5Bwght%5D.ttf\")",
+      "Bash(curl -sL -o lora-italic-variable.woff2 \"https://github.com/google/fonts/raw/main/ofl/lora/Lora-Italic%5Bwght%5D.ttf\")",
+      "Bash(curl -sL -o jetbrains-mono-variable.woff2 \"https://github.com/JetBrains/JetBrainsMono/raw/master/fonts/variable/JetBrainsMono%5Bwght%5D.ttf\")",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Read(//tmp curl -sL https:/github.com/JetBrains/JetBrainsMono/releases/download/**)",
+      "Bash(pip3 show:*)",
+      "Bash(pip3 install:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npx wrangler:*)"
+    ],
+    "additionalDirectories": [
+      "/Users/pavelrapoport/Documents/GitHub/pavelrapoport.com/src/app/[lang]",
+      "/Users/pavelrapoport/Documents/GitHub/pavelrapoport.com/src/app/[lang]/[slug]",
+      "/Users/pavelrapoport/Documents/GitHub/pavelrapoport.com/src/app"
+    ]
+  }
+}
