@@ -30,6 +30,7 @@ context: |
   ## Tech Stack
   Frontend: React 19, Next.js 15 (App Router), TypeScript, Tailwind CSS 4, D3.js, SVG, Canvas, XState
   Backend: NestJS, Node.js, Supabase (PostgreSQL, Auth, RLS)
+  Packages: @repo/ui (shadcn/ui), @repo/db (Supabase), @repo/ai (agent), @repo/auth, @repo/config (connections), @repo/domain-map (React Flow)
   Infra: Turborepo monorepo, pnpm, Cloudflare Pages
   AI: Claude Opus, MCP servers, RAG pipelines, XState agents
   Tooling: Linear, Git, OpenSpec, CLI-first architecture (CLI → JSON → DB → Read-only UI)

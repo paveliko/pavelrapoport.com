@@ -98,13 +98,52 @@ apps/
       finance/
 
 packages/
-  @repo/ui            → design system (shared across both apps)
+  @repo/ui            → design system (shadcn/ui components)
   @repo/db            → Supabase client, types, migrations
   @repo/ai            → agent logic, prompts, mode switching
   @repo/auth          → authentication, roles, permissions
+  @repo/config        → connection configs, secrets management
   @repo/domain-map    → interactive entity graph (React Flow)
                         standalone-extractable
 ```
+
+### @repo/ui
+
+Built on shadcn/ui. All components live here, never in apps.
+Both web and studio consume from the same library.
+
+### @repo/db
+
+Supabase client, generated types, RLS policies, migrations.
+Single source of truth for all database access.
+
+### @repo/ai
+
+Agent core: mode definitions (Canvas, Scout, Architect, Builder),
+system prompts, structured output schemas, model selection,
+token tracking. Consumed by both apps and by CLI tools.
+
+### @repo/auth
+
+Supabase Auth wrapper, role definitions (owner, client, network,
+public), permission checks, middleware. Shared across apps.
+
+### @repo/config
+
+Connection management layer for all 21 integrations:
+- `getConnection(type, projectId?)` — config + status
+- `setConnection(type, projectId?, fields)` — encrypted store
+- `validateConnection(type, config)` — ok | error
+- `listConnections(projectId?)` — all active connections
+
+Secrets stored in Supabase (encrypted) or Cloudflare secrets.
+Package abstracts the source — app doesn't care where keys live.
+
+### @repo/domain-map
+
+React Flow-based entity graph visualizer. Renders domain maps
+from OpenSpec data. Designed for standalone extraction as
+a separate product.
 
 **web** — public, for everyone.
 **studio** — protected, subdomain, behind auth.
