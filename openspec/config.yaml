@@ -1,0 +1,102 @@
+# openspec/config.yaml
+schema: spec-driven
+context: |
+  # pavelrapoport.com — AI Development Studio
+
+  ## Who
+  Pavel Rapoport — Product Architect & Senior Frontend Engineer.
+  35 years of coding (since age 10). 15+ professional years.
+  4 languages: English, Hebrew, Russian, Romanian.
+  Based in Israel, operating globally.
+
+  ## Positioning
+  "I turn creative vision into specs that build."
+  Bridge between design/product thinking and engineering execution.
+  Not another developer — an architect who ships.
+
+  ## Proof
+  - 5 design systems from scratch (1000+ components): Perimeter 81, Zerto/HPE, Wibbitz, Factify, Dentour
+  - Perimeter 81 — early engineer, acquired by Check Point for ~$490M
+  - AI migration pipeline (Angular→React) at Zerto hackathon — ~90% automation, adopted internally
+  - Dentour — full-stack monorepo: 7 apps, 20 shared packages, builds from 15min → 2min
+  - Complex visual interfaces: D3.js graphs, SVG pipeline editors, Canvas rendering
+
+  ## Services
+  1. Design System as a Service — component libraries, tokens, documentation
+  2. Spec-to-Code Architecture — from idea to structured spec + implementation plan
+  3. Frontend Architecture — monorepo setup, build optimization, migrations
+  4. AI-Augmented Development — CLI agents, spec-driven workflows, automation pipelines
+
+  ## Tech Stack
+  Frontend: React 19, Next.js 15 (App Router), TypeScript, Tailwind CSS 4, D3.js, SVG, Canvas, XState
+  Backend: NestJS, Node.js, Supabase (PostgreSQL, Auth, RLS)
+  Infra: Turborepo monorepo, pnpm, Cloudflare Pages
+  AI: Claude Opus, MCP servers, RAG pipelines, XState agents
+  Tooling: Linear, Git, OpenSpec, CLI-first architecture (CLI → JSON → DB → Read-only UI)
+
+  ## Domains
+  - web — public landing, about, services, case studies
+  - studio — internal workspace, project execution dashboard
+  - clients — client portal (projects, status, deliverables)
+  - projects — project management, specs, timelines
+  - finance — invoices, payments, revenue tracking
+  - blog — articles, case studies, insights (MDX, bilingual en/ru)
+  - auth — Supabase Auth, role-based access (admin / client / public)
+  - network — contacts, partners, referrals
+  - messages — client communication, notifications
+  - ai — AI agents, automation, internal tooling
+
+  ## Site Structure
+  Public (no auth):
+    / — landing with positioning + services + proof
+    /about — story, approach, values
+    /services — detailed service pages
+    /blog — articles and case studies
+    /contact — inquiry form
+
+  Client Portal (auth required, role: client):
+    /portal — client dashboard
+    /portal/projects — active projects, specs, status
+    /portal/invoices — billing history
+
+  Studio (auth required, role: admin):
+    /studio — internal dashboard
+    /studio/projects — all projects, pipeline
+    /studio/clients — CRM
+    /studio/finance — revenue, expenses, forecasts
+
+  ## Design Principles
+  - Show results, not technology lists
+  - Every service page follows: Problem → What I do → Result with number
+  - Client portal is read-only for clients — they see status, not edit specs
+  - Studio is for Pavel only — full control, no client access
+  - Bilingual: /en (default) and /ru routes
+
+  ## Revenue Model
+  - Project-based contracts (spec → build → deliver)
+  - Retainer for ongoing design system maintenance
+  - Consulting hours for architecture audits
+
+  ## Tone
+  Professional but human. Direct. No buzzwords.
+  "Here's what I built, here's what it did, here's what I can do for you."
+
+rules:
+  proposal:
+    - Keep under 500 words
+    - Always include Non-goals section
+    - Reference which domain(s) this change affects
+    - State the business goal (revenue, client experience, or operational efficiency)
+  specs:
+    - One spec per domain
+    - Use Given/When/Then format for scenarios
+    - Include role context (public / client / admin) for any UI spec
+  design:
+    - Reference tech stack from context
+    - Explain WHY this approach, not just what
+    - Consider bilingual routing for any public-facing page
+  tasks:
+    - Max 8 tasks per change
+    - Each task ≤ 30 minutes
+    - Tasks are ordered, no parallelism
+    - First task is never code — it's always spec or schema

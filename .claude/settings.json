@@ -19,7 +19,10 @@
       "Bash(npm uninstall:*)",
       "Bash(npx wrangler:*)",
       "Bash(npx husky:*)",
-      "Bash(npx commitlint:*)"
+      "Bash(npx commitlint:*)",
+      "Bash(npx openspec:*)",
+      "Bash(git status:*)",
+      "Bash(git commit -m ':*)"
     ],
     "additionalDirectories": [
       "/Users/pavelrapoport/Documents/GitHub/pavelrapoport.com/src/app/[lang]",
