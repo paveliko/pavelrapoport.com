@@ -113,6 +113,23 @@
 - **Validate:** GET /api/domains
 - **Scope:** global
 
+### Railway
+- **Auth:** API token
+- **Fields:**
+  - `api_token` (secret) — Railway API token
+  - `project_id` (text) — Railway project ID
+- **Validate:** GET railway API health
+- **Scope:** project
+
+### Infisical
+- **Auth:** Service token
+- **Fields:**
+  - `token` (secret) — Infisical service token
+  - `project_id` (text) — Infisical project ID
+  - `environment` (select) — dev, staging, production
+- **Validate:** GET /api/v3/secrets
+- **Scope:** project
+
 ### Google Workspace
 - **Auth:** OAuth 2.0
 - **Fields:**
@@ -225,13 +242,13 @@
 
 | Field Type | Count | Examples |
 |-----------|-------|---------|
-| secret | 37 | API keys, tokens, DSNs |
-| text | 22 | slugs, IDs, names |
+| secret | 39 | API keys, tokens, DSNs |
+| text | 24 | slugs, IDs, names |
 | url | 5 | endpoints, webhooks |
-| select | 8 | providers, models, modes |
+| select | 9 | providers, models, modes, environments |
 | email | 3 | from/reply-to, account |
 | number | 2 | max_tokens, dimensions |
 | boolean | 1 | enabled flag |
 | text[] | 3 | chat_ids, allowed_commands, enabled_services |
 
-Total: 81 fields across 22 integrations.
+Total: 86 fields across 24 integrations.

@@ -258,3 +258,185 @@ After seed:
 - [ ] Pavel can switch between "Pavel Rapoport" and "VIVOD" orgs
 - [ ] Misha cannot see "Pavel Rapoport" org data
 - [ ] Pilot clients tracked in project
+
+---
+
+# Dentour — Solo Project
+
+## Organization
+
+```
+Organization:
+  name: Dentour
+  slug: dentour
+  type: company
+
+  Members:
+    - Pavel
+      org_role: owner
+      role_title: Co-Founder, Solo Developer, Product Manager
+
+    - (Marketing Partner — TBD)
+      org_role: admin
+      role_title: Marketing / Business Development
+      status: searching
+      need: someone who onboards clinics, runs demand-side
+        marketing, builds supply in Moldova/Romania/Georgia
+      ideal_profile: dental tourism industry knowledge,
+        B2B sales experience, connections to clinics,
+        speaks Romanian/Russian
+
+  Origin:
+    trigger: personal pain — dental costs in Israel vs
+      Moldova/Romania (60-80% savings), friends flying
+      abroad for treatment, chaotic WhatsApp-based process
+    market_gap: no platform combines real-time booking
+      + dental tourism focus + transparent pricing
+    competitive_analysis: 12 competitors analyzed,
+      three clusters, none solve the full problem
+```
+
+## Domains
+
+```
+Domains:
+  - name: dentour.eu
+    market: Europe (central)
+    languages: EN, RU
+
+  - name: dentour.co.il
+    market: Israel
+    languages: HE, RU, EN
+
+  - name: dentour.md
+    market: Moldova (supply side)
+    languages: RO, RU
+
+  - name: dentour.ro
+    market: Romania (supply side)
+    languages: RO, EN
+
+  - name: dentour.ge
+    market: Georgia
+    languages: KA, RU, EN
+
+  - name: dentour.es
+    market: Spain
+    languages: ES
+
+  - name: dentour.co.uk
+    market: UK
+    languages: EN
+
+  All domains: dns_provider: cloudflare
+```
+
+## Project
+
+```
+Project:
+  name: Dentour Platform
+  slug: dentour-platform
+  organization: dentour
+  status: building
+  created_by: Pavel
+
+  Architecture: monorepo (pnpm + Turborepo)
+    apps: patient-web, clinic-portal, admin, api (NestJS)
+    packages: 18 shared packages (@dentour/*)
+
+  Current state:
+    - Patient web: catalog, clinic profiles, 5 onboarding paths
+    - Clinic portal: registration, profile management
+    - Admin panel: clinic/patient management
+    - API: auth, clinics, patients, services, quotes, uploads
+    - i18n: 6 languages with RTL
+    - 77 documentation files
+
+  Direction: catalog → AI-first platform
+    - AI assistant as primary patient interface
+    - X-ray analysis for treatment plans
+    - Smart clinic matching
+    - AI assistant for clinics
+
+  Key challenge: chicken-and-egg marketplace problem
+    Need marketing partner to onboard clinics (supply side)
+
+  Year 1 targets:
+    - 500 completed bookings
+    - €750K GMV
+    - €94K platform revenue (12.5% take rate)
+    - 100 clinics onboarded
+    - 4,000 patient registrations
+```
+
+## Connections (project: dentour-platform)
+
+```
+Project connections (dentour-platform):
+
+  - type: github
+    scope: project
+    config:
+      owner: (github org)
+      repo: dentour
+      default_branch: main
+      token: (secret)
+
+  - type: supabase
+    scope: project
+    config:
+      project_url: (secret)
+      anon_key: (secret)
+      service_role_key: (secret)
+
+  - type: cloudflare
+    scope: project
+    config:
+      account_id: (secret)
+      zones: [dentour.eu, dentour.co.il, dentour.md,
+              dentour.ro, dentour.ge, dentour.es, dentour.co.uk]
+      api_token: (secret)
+
+  - type: railway
+    scope: project
+    config:
+      project_id: (secret)
+      api_token: (secret)
+    note: NestJS API hosted on Railway
+
+  - type: infisical
+    scope: project
+    config:
+      project_id: (secret)
+      token: (secret)
+    note: secrets management (may migrate to @rapoport/config)
+
+  - type: sentry
+    scope: project
+    config:
+      org_slug: dentour
+      project_slug: dentour
+      dsn: (secret)
+      auth_token: (secret)
+
+  - type: posthog
+    scope: project
+    config:
+      api_key: (secret)
+      host: https://app.posthog.com
+      project_id: (secret)
+```
+
+## Dentour Verification Checklist
+
+After seed:
+- [ ] Organization "Dentour" exists, Pavel is owner
+- [ ] Project "Dentour Platform" exists under Dentour org
+- [ ] 7 domains registered and active
+- [ ] All connections (GitHub, Supabase, Cloudflare,
+      Railway, Infisical, Sentry, PostHog) active
+- [ ] Pavel can switch between all 3 orgs:
+      "Pavel Rapoport", "VIVOD", "Dentour"
+- [ ] Cross-org isolation: VIVOD cannot see Dentour data
+- [ ] Marketing partner slot visible as "searching"
