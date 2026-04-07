@@ -58,6 +58,40 @@ User (authenticated)
         └── (future roles plug in here)
 ```
 
+### Access Model: Three Levels
+
+Three nested levels of access control:
+
+```
+Platform (role: admin | user)
+  └── Organization (org_role: owner | admin | member | viewer)
+        └── Project (assigned | not assigned)
+```
+
+Access check — three questions in order:
+1. Authenticated? → no → login
+2. Member of organization? → no → 403
+3. Has project access? → owner/admin see all, member/viewer only assigned
+
+### Database Tables
+
+```
+organization_members:
+  id, organization_id → organizations.id, user_id → profiles.id,
+  org_role (owner | admin | member | viewer), joined_at
+
+project_assignments:
+  id, project_id → projects.id, user_id → profiles.id
+```
+
+### RLS Function: can_access_project(project_id)
+
+Security definer function — single source of truth for project access:
+- Platform admin → sees everything
+- Org owner/admin → sees all projects in their org
+- Org member/viewer → sees only assigned projects
+- Not in org → no access
+
 ### Network Groups
 
 Network members belong to groups — organized by project,
@@ -194,19 +228,35 @@ via Supabase Auth.
 
 ### Requirement: Roles
 
-The system SHALL support two base roles at launch.
+The system SHALL support two platform-level roles and
+four organization-level roles.
+
+Platform roles (`profiles.role`):
+- `admin` — platform-wide access (Pavel)
+- `user` — default, scoped by org membership
+
+Organization roles (`organization_members.org_role`):
+- `owner` — full access, billing, delete org
+- `admin` — manage projects and members
+- `member` — work on assigned projects
+- `viewer` — read-only on assigned projects
 
 #### Scenario: Admin role
 - **WHEN** Pavel authenticates
-- **THEN** role is `admin`, full access everywhere
+- **THEN** platform role is `admin`, full access everywhere
 
 #### Scenario: User role
 - **WHEN** anyone else registers
-- **THEN** role is `user`, sees only shared content
+- **THEN** platform role is `user`, access scoped by org membership
 
 #### Scenario: Anonymous visitor
 - **GIVEN** no login
 - **THEN** sees public web content + AI chat only
+
+#### Scenario: Org role determines project access
+- **GIVEN** user is member of an organization
+- **THEN** org owner/admin sees all org projects
+- **AND** org member/viewer sees only assigned projects
 
 ---
 
@@ -325,6 +375,15 @@ via middleware.
 #### Scenario: Public route
 - **WHEN** anyone hits /, /blog/* → allowed
 
+#### Scenario: Org-scoped route
+- **WHEN** user hits /studio/projects
+- **THEN** middleware checks current org context
+- **AND** only shows projects from the active organization
+
+#### Scenario: No org membership
+- **WHEN** authenticated user has no org membership
+- **THEN** they see only their personal org content
+
 ---
 
 ### Requirement: Row-Level Security
@@ -374,6 +433,9 @@ All auth logic lives here. Apps import, never implement.
 - `useRequireAuth(role?)` → redirect if not authorized
 - `useSession()` → { session, refresh, signOut }
 - `useDomainRole()` → { isClient, isNetworkMember, groups }
+- `useOrganization()` → { org, orgRole, switchOrg }
+- `useOrgPermission(permission)` → boolean
+- `useOrganizations()` → [{ org, role }]
 
 **Middleware:**
 - `withAuth(handler)` → check session, inject user + profile
@@ -384,6 +446,8 @@ All auth logic lives here. Apps import, never implement.
 - `getServerSession(cookies)` → session from cookies
 - `getServerUser(cookies)` → user + profile + domain roles
 - `validateSession(token)` → verify + refresh if needed
+- `getServerOrgRole(cookies, orgId)` → org_role
+- `canAccessProject(userId, projectId)` → boolean
 
 **Security:**
 - `validateInput(schema, data)` → zod validation
@@ -394,6 +458,7 @@ All auth logic lives here. Apps import, never implement.
 - `AUTH_ROUTES` → public / auth-required / admin-only map
 - `COOKIE_DOMAIN` → `.pavelrapoport.com`
 - `REDIRECT_DEFAULTS` → { admin, client, network, user }
+- `ORG_PERMISSIONS` → map of org_role to allowed actions
 
 ### What is NOT in @rapoport/auth
 
@@ -408,12 +473,16 @@ All auth logic lives here. Apps import, never implement.
   locale, role, created_at
 - **Session** — access_token, refresh_token, expires_at
 - **Role** — `admin` or `user` (stored in profiles)
+- **OrganizationMember** — user's membership in an org.
+  Has: id, organization_id, user_id, org_role, joined_at
+- **ProjectAssignment** — user assigned to a project.
+  Has: id, project_id, user_id
 - **AuditEvent** — timestamp, user_id, ip, action, success
 
 ## Dependencies
 
 - All domains depend on `auth`
-- `clients` — client profile extends User
+- `organizations` — org membership determines access scope
 - `network` — network member profile extends User
 - `integrations` — WhatsApp Business API for WhatsApp login
 - `@rapoport/ui` — auth form components
