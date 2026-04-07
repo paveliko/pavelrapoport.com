@@ -98,37 +98,37 @@ apps/
       finance/
 
 packages/
-  @repo/ui            → design system (shadcn/ui components)
-  @repo/db            → Supabase client, types, migrations
-  @repo/ai            → agent logic, prompts, mode switching
-  @repo/auth          → authentication, roles, permissions
-  @repo/config        → connection configs, secrets management
-  @repo/domain-map    → interactive entity graph (React Flow)
+  @rapoport/ui            → design system (shadcn/ui components)
+  @rapoport/db            → Supabase client, types, migrations
+  @rapoport/ai            → agent logic, prompts, mode switching
+  @rapoport/auth          → authentication, roles, permissions
+  @rapoport/config        → connection configs, secrets management
+  @rapoport/domain-map    → interactive entity graph (React Flow)
                         standalone-extractable
 ```
 
-### @repo/ui
+### @rapoport/ui
 
 Built on shadcn/ui. All components live here, never in apps.
 Both web and studio consume from the same library.
 
-### @repo/db
+### @rapoport/db
 
 Supabase client, generated types, RLS policies, migrations.
 Single source of truth for all database access.
 
-### @repo/ai
+### @rapoport/ai
 
 Agent core: mode definitions (Canvas, Scout, Architect, Builder),
 system prompts, structured output schemas, model selection,
 token tracking. Consumed by both apps and by CLI tools.
 
-### @repo/auth
+### @rapoport/auth
 
 Supabase Auth wrapper, role definitions (owner, client, network,
 public), permission checks, middleware. Shared across apps.
 
-### @repo/config
+### @rapoport/config
 
 Connection management layer for all 21 integrations:
 - `getConnection(type, projectId?)` — config + status
@@ -139,7 +139,7 @@ Connection management layer for all 21 integrations:
 Secrets stored in Supabase (encrypted) or Cloudflare secrets.
 Package abstracts the source — app doesn't care where keys live.
 
-### @repo/domain-map
+### @rapoport/domain-map
 
 React Flow-based entity graph visualizer. Renders domain maps
 from OpenSpec data. Designed for standalone extraction as
