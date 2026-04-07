@@ -49,6 +49,7 @@
   - `production_branch` (text) — default `main`
 - **Validate:** GET /client/v4/accounts/{account_id}
 - **Scope:** project or global
+- **Also used by:** `domains` — DNS management, subdomain creation, SSL provisioning
 
 ### Supabase
 - **Auth:** Service role key + project URL

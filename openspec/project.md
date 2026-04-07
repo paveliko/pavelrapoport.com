@@ -327,6 +327,29 @@ Without this, every domain reinvents how to talk outside.
 
 ---
 
+### `domains`
+
+**What:** DNS domain management — registration, subdomains,
+SSL, email configuration.
+
+**For whom:** Organization owners (manage their domains),
+admins (configure subdomains and email).
+
+**Why it exists:** A domain is more than a URL. It has DNS,
+SSL, email, subdomain routing, expiry tracking. Organizations
+own domains, projects use subdomains. Cloudflare is the central
+DNS manager.
+
+**What's inside:**
+- Domain registration and verification
+- Subdomain → project mapping
+- Email config (SPF, DKIM, DMARC)
+- SSL (automatic via Cloudflare)
+- Expiry tracking and alerts
+- DNS audit trail
+
+---
+
 ### `auth`
 
 **What:** Authentication and authorization across the
