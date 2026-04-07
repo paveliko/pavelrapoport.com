@@ -210,7 +210,7 @@ Tasks SHALL respect organization and project access rules.
 
 ### Requirement: Task Priority
 
-The system SHALL support four priority levels.
+The system SHALL support priority levels for all tasks.
 
 #### Scenario: Priority levels
 - **GIVEN** a task is created
@@ -222,7 +222,7 @@ The system SHALL support four priority levels.
 
 ### Requirement: Task Board Views
 
-The system SHALL provide multiple task board views.
+The system SHALL provide multiple views for browsing tasks.
 
 #### Scenario: My tasks
 - **WHEN** any user opens their task list

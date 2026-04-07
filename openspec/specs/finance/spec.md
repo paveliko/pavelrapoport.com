@@ -57,7 +57,7 @@ by client, by time period.
 
 #### Scenario: Generating a margin report
 - **WHEN** Pavel requests a report for a time period
-- **THEN** the system shows margin by project, by client
+- **THEN** the system shows margin breakdown by project and client
 
 ## Entities
 

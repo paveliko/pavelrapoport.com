@@ -154,7 +154,7 @@ Each project SHALL track planned vs actual costs.
 
 ### Requirement: Project-Level Permissions
 
-The system SHALL enforce project access based on organization membership.
+The system SHALL enforce project access based on organization role.
 
 #### Scenario: Organization member access
 - **WHEN** an org member opens a project

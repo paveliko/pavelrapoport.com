@@ -336,19 +336,19 @@ What happens when two people edit the same entity at the same time.
 ```
 How it works:
 
-  1. User A opens entity at 10:00
+  1. Паша opens entity "Patient" at 10:00
      → client stores: loaded_at = "2026-04-07T10:00:00Z"
 
-  2. User B opens same entity at 10:01
+  2. Миша opens same entity at 10:01
      → client stores: loaded_at = "2026-04-07T10:01:00Z"
 
-  3. User B saves at 10:05
+  3. Миша saves at 10:05
      → API checks: updated_at in DB == loaded_at? Yes → save
      → DB updated_at is now "2026-04-07T10:05:00Z"
 
-  4. User A saves at 10:07
+  4. Паша saves at 10:07
      → API checks: updated_at in DB == loaded_at?
-     → DB has 10:05, User A loaded at 10:00 → CONFLICT
+     → DB has 10:05, Паша loaded at 10:00 → CONFLICT
      → API returns 409 Conflict
      → UI shows: "This entity was modified by someone else.
         Review changes and try again."
@@ -1092,12 +1092,12 @@ Response:
 Cmd+K (Mac) / Ctrl+K (Windows) → opens search overlay
 
   ┌─────────────────────────────────────────┐
-  │  Search...  dentour                     │
+  │  🔍  dentour                            │
   ├─────────────────────────────────────────┤
-  │  Dentour Platform              project  │
-  │  Patient                       entity   │
-  │  auth/spec.md                  spec     │
-  │  Setup Supabase                task     │
+  │  📁 Dentour Platform         project    │
+  │  👤 Patient                  entity     │
+  │  📄 auth/spec.md             spec       │
+  │  ✅ Setup Supabase           task       │
   └─────────────────────────────────────────┘
 
 Each result is an Entity View (Inline level).

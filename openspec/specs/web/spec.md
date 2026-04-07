@@ -34,9 +34,9 @@ The site SHALL display case studies linked to the `blog` domain.
 The site SHALL include proper meta tags, open graph, and structured data
 for search engine visibility and social sharing.
 
-#### Scenario: Search engine indexing
-- **WHEN** a search engine crawls the site
-- **THEN** it finds valid meta tags, open graph, and structured data on every page
+#### Scenario: Page meta tags
+- **WHEN** a page is rendered
+- **THEN** it includes meta title, description, open graph, and structured data
 
 ## Entities
 

@@ -50,8 +50,8 @@ The system SHALL notify relevant parties of new messages,
 new leads, and task updates.
 
 #### Scenario: New message notification
-- **WHEN** a new message arrives in a conversation
-- **THEN** all participants are notified
+- **WHEN** a new message is received in a conversation
+- **THEN** the system notifies all relevant participants
 
 ### Requirement: Chat History
 
@@ -59,7 +59,7 @@ All conversations SHALL be searchable and linked to projects.
 
 #### Scenario: Searching chat history
 - **WHEN** a user searches conversations by keyword
-- **THEN** matching messages are returned with project context
+- **THEN** the system returns matching messages across all accessible threads
 
 ## Entities
 

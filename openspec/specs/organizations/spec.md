@@ -141,7 +141,7 @@ All project data SHALL be scoped to the organization.
 
 ### Requirement: Organization Switching
 
-The system SHALL support switching between organizations.
+The system SHALL allow users to switch between organizations.
 
 #### Scenario: Switching context
 - **WHEN** a user belongs to multiple organizations

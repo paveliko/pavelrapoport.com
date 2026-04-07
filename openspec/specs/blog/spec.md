@@ -36,10 +36,9 @@ The system SHALL support structured case studies linked to projects.
 All published content SHALL include meta tags, open graph,
 and structured data.
 
-#### Scenario: Published article has SEO metadata
+#### Scenario: Publishing with SEO meta
 - **WHEN** an article is published
-- **THEN** it includes meta tags, open graph, and structured data
-- **AND** search engines can index the content
+- **THEN** the system generates meta tags, open graph, and structured data
 
 ## Entities
 

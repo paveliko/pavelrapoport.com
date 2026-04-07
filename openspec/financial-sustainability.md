@@ -61,9 +61,9 @@ Client acquisition:
   - Word of mouth from delivered projects
 
 Case studies needed (highest priority):
-  1. Zerto → AI migration, ~90% automation
-  2. Perimeter 81 → design system, acquired $490M
-  3. Dentour monorepo → build time 15→2-3 min
+  1. Zerto — AI migration, ~90% automation
+  2. Perimeter 81 — design system, acquired $490M
+  3. Dentour monorepo — build time 15→2-3 min
 ```
 
 ### Stream 2: Own Products (NEAR-TERM — equity + future)
@@ -146,7 +146,7 @@ If margin drops below 30%:
    → Escalate: call, formal email, mention contract terms
    → Pause work on that project
 
-🟡 Pipeline < $10K in next 60 days
+🟠 Pipeline < $10K in next 60 days
    → Increase outreach: 5 messages/day
    → Publish case study
    → Offer discovery sessions
@@ -208,28 +208,28 @@ Process:
 1st of every month, Pavel reviews:
 
 Revenue:
-  ☐ Total invoiced this month
-  ☐ Total received this month
-  ☐ Overdue invoices (count, total)
-  ☐ Pipeline: confirmed for next 60 days
+  □ Total invoiced this month
+  □ Total received this month
+  □ Overdue invoices (count, total)
+  □ Pipeline: confirmed for next 60 days
 
 Expenses:
-  ☐ AI costs (Claude API, other)
-  ☐ Infrastructure (Cloudflare, Railway, Supabase, Vercel)
-  ☐ Tools (Linear, GitHub, domains, etc.)
-  ☐ Network member payments
-  ☐ Personal expenses
+  □ AI costs (Claude API, other)
+  □ Infrastructure (Cloudflare, Railway, Supabase, Vercel)
+  □ Tools (Linear, GitHub, domains, etc.)
+  □ Network member payments
+  □ Personal expenses
 
 Health:
-  ☐ Cash buffer: how many months?
-  ☐ Margin per project
-  ☐ Biggest expense category
-  ☐ Revenue trend: growing or shrinking?
+  □ Cash buffer: how many months?
+  □ Margin per project
+  □ Biggest expense category
+  □ Revenue trend: growing or shrinking?
 
 Actions:
-  ☐ If healthy → continue building
-  ☐ If warning → increase sales activity
-  ☐ If emergency → pause building, sell
+  □ If healthy → continue building
+  □ If warning → increase sales activity
+  □ If emergency → pause building, sell
 ```
 
 ---
@@ -256,9 +256,9 @@ Actions:
     Client A:  revenue vs cost
 
   Alerts:
-    🔴 Overdue: Invoice #003 → $5,000 → 15 days
-    🟡 Pipeline: only $8K in next 60 days
-    🟢 Buffer: 4.2 months → healthy
+    🔴 Overdue: Invoice #003 — $5,000 — 15 days
+    🟠 Pipeline: only $8K in next 60 days
+    🟢 Buffer: 4.2 months — healthy
 ```
 
 ---
@@ -267,8 +267,8 @@ Actions:
 
 ```
 Before starting any new feature or domain:
-  1. Check /studio/finance → is the month on track?
-  2. Check pipeline → is there $10K+ in next 60 days?
+  1. Check /studio/finance — is the month on track?
+  2. Check pipeline — is there $10K+ in next 60 days?
   3. If yes → build
   4. If no → sell first
 

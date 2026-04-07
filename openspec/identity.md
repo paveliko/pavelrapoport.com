@@ -204,10 +204,10 @@ Knowing yourself is the first layer of security.
    before any code.
 
 6. **Recognize manipulation patterns.**
-   "Just this small thing" — scope creep.
-   "We're friends, no need for contract" — exploitation risk.
-   "I'll pay you later" — never.
-   "You're the only one who can do this" — pressure tactic.
+   "Just this small thing" → scope creep.
+   "We're friends, no need for contract" → exploitation risk.
+   "I'll pay you later" → never.
+   "You're the only one who can do this" → pressure tactic.
 
 7. **Protect your time boundaries.**
    WhatsApp at midnight ≠ work. The platform has a client

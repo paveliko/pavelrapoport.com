@@ -174,7 +174,7 @@ The system SHALL track domain expiration dates.
 
 ### Requirement: Domain Removal
 
-The system SHALL enforce safe domain removal.
+The system SHALL allow organization owners to remove domains.
 
 #### Scenario: Removing a domain
 - **WHEN** an org owner removes a domain
@@ -189,7 +189,7 @@ The system SHALL enforce safe domain removal.
 
 ### Requirement: Domain Access Control
 
-The system SHALL restrict domain management by org role.
+The system SHALL enforce role-based access to domain management.
 
 #### Scenario: Permissions by role
 - **GIVEN** the following access:

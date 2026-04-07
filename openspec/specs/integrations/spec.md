@@ -96,16 +96,17 @@ Every incoming webhook SHALL be verified before processing.
 - **THEN** the system reads the `X-Linear-Signature` header
 - **AND** computes HMAC-SHA256 of the raw body using the
   stored `linear_webhook_secret`
-- **AND** if signatures match → process the webhook
-- **AND** if signatures don't match → return 401, log the attempt
+- **AND** compares the computed signature with the header
+- **IF** signatures match → process the webhook
+- **IF** signatures don't match → return 401, log the attempt
 
 #### Scenario: GitHub webhook received
 - **WHEN** the API receives a POST to `/webhooks/github`
 - **THEN** the system reads the `X-Hub-Signature-256` header
 - **AND** computes HMAC-SHA256 of the raw body using the
   stored `github_webhook_secret`
-- **AND** if signatures match → process the webhook
-- **AND** if signatures don't match → return 401, log the attempt
+- **IF** signatures match → process the webhook
+- **IF** signatures don't match → return 401, log the attempt
 
 #### Scenario: Unknown webhook source
 - **WHEN** a POST arrives at any `/webhooks/*` endpoint

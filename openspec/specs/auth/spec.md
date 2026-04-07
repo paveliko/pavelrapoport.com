@@ -440,7 +440,7 @@ The system SHALL support two base roles at launch.
 
 ### Requirement: Access by Domain Role
 
-The system SHALL grant access based on domain-specific roles.
+The system SHALL determine visibility based on domain role.
 
 #### Scenario: Client access
 - **GIVEN** user has client profile
@@ -489,7 +489,7 @@ The system SHALL maintain a single session across all subdomains.
 
 ### Requirement: Login Flow
 
-The system SHALL handle login with redirect preservation.
+The system SHALL redirect unauthenticated users to login and return them after authentication.
 
 #### Scenario: Login from protected page
 - **WHEN** unauthenticated user hits protected route
@@ -520,7 +520,7 @@ The system SHALL destroy sessions across all subdomains on logout.
 
 ### Requirement: Email Flows
 
-The system SHALL support magic link, password reset, and email change flows.
+The system SHALL handle transactional auth emails via Supabase.
 
 #### Scenario: Magic link
 - **WHEN** user requests magic link
@@ -538,7 +538,7 @@ The system SHALL support magic link, password reset, and email change flows.
 
 ### Requirement: Route Protection
 
-The system SHALL enforce route-level access control by role.
+The system SHALL enforce route-level access control via middleware.
 
 #### Scenario: Admin-only route
 - **WHEN** non-admin hits /studio/finance → denied
@@ -553,7 +553,7 @@ The system SHALL enforce route-level access control by role.
 
 ### Requirement: Row-Level Security
 
-The system SHALL enforce row-level security on every public table.
+The system SHALL use Supabase RLS policies on every public table.
 
 #### Scenario: Data isolation
 - **WHEN** user queries any table
@@ -567,7 +567,7 @@ The system SHALL enforce row-level security on every public table.
 
 ### Requirement: Session Expiry
 
-The system SHALL handle session expiry gracefully without data loss.
+The system SHALL handle expired sessions gracefully.
 
 #### Scenario: Active session expires
 - **WHEN** session expires during use
@@ -578,7 +578,7 @@ The system SHALL handle session expiry gracefully without data loss.
 
 ### Requirement: Audit Trail
 
-The system SHALL log all authentication and authorization events.
+The system SHALL log all security-relevant events.
 
 #### Scenario: Security event logging
 - **WHEN** any auth event occurs (login, logout, role change,
