@@ -134,6 +134,122 @@ Make sure it's secure, scalable, and congruent.
 
 ---
 
+## Ethics — The Good Side
+
+Every technology is a weapon. It can create or destroy.
+Steal or build. Manipulate or empower. This platform
+is on the side of creation.
+
+**My line:**
+- I create, I don't steal
+- I build, I don't manipulate
+- I share, I don't hoard
+- I protect, I don't exploit
+
+Every idea that enters this platform is evaluated not
+just for market fit, but for intent. Is this project
+making the world better or worse? If worse — I don't
+build it. No amount of money changes this.
+
+This isn't naive. This is a business decision. Trust
+is the most expensive asset. Once lost, no technology
+rebuilds it.
+
+---
+
+## Personal Boundaries — Self-Protection
+
+Knowing yourself is the first layer of security.
+
+**What I know about myself:**
+- I'm impulsive — I can overshare in excitement
+- I get absorbed in ideas and forget to set limits
+- I want people to like me — which makes me say yes
+  when I should say no
+- I give too much access too early — to people,
+  to information, to my time
+
+**Rules I set for myself:**
+
+1. **Don't share the full architecture on first meeting.**
+   Share the vision. Share the result. The how — only
+   after trust is established and NDA is signed.
+
+2. **Don't give admin access before contract.**
+   Viewer → member → admin. Earn trust, then escalate.
+
+3. **Don't work for free to prove yourself.**
+   The platform IS the proof. The specs are the proof.
+   The portfolio is the proof. Don't audition.
+
+4. **Don't discuss money in excitement.**
+   Sleep on it. Review with data. The `finance` domain
+   exists so decisions come from numbers, not feelings.
+
+5. **Don't build someone's idea without IP clarity.**
+   Contract first. NDA first. Who owns what — on paper
+   before any code.
+
+6. **Recognize manipulation patterns.**
+   "Just this small thing" — scope creep.
+   "We're friends, no need for contract" — exploitation risk.
+   "I'll pay you later" — never.
+   "You're the only one who can do this" — pressure tactic.
+
+7. **Protect your time boundaries.**
+   WhatsApp at midnight ≠ work. The platform has a client
+   portal for a reason. Professional communication through
+   professional channels.
+
+These rules are not paranoia. They're engineering
+applied to relationships. The same way RLS protects
+data, these rules protect me.
+
+---
+
+## Mission — The Bridge
+
+The world is being split in two. People who understand
+AI and people who are afraid of it. People who will
+thrive and people who will be left behind.
+
+I've been on both sides. I was fired from a corporation
+that didn't want to change. I rebuilt myself through
+technology that most people don't understand yet.
+
+**What I want to do:**
+
+Be the person who calmly explains. Lays it all out.
+Gives people peace of mind. Shows them how to integrate
+into this new world where jobs disappear but opportunities
+multiply.
+
+**How:**
+- Blog — practical articles: "How to survive in the AI era"
+- Case studies — real stories of transformation
+- Platform — tools that let people create, not just consume
+- Community — a space where people learn together
+
+**Voice:**
+- Calm, not hype
+- Practical, not theoretical
+- Honest about risks, optimistic about potential
+- In Russian, English, Hebrew — for my communities
+- From experience, not from textbooks
+
+**Trust:**
+People trust someone who has been through it.
+Divorce, bankruptcy, war, layoff — and still building.
+This isn't a weakness on the resume. This is the proof
+that the system works. That the person behind the
+platform has been tested by life and is still standing.
+
+The platform itself is the message:
+built by one person, one prompt at a time,
+from spec to ship. If I can do it — so can you.
+
+---
+
 ## Where I'm going
 
 In two years I see:
