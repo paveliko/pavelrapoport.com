@@ -1,6 +1,7 @@
 # auth
 
 > Domain security. Every request knows who you are and what you can touch.
+> Built in Israel. Cybersecurity in the DNA.
 
 ## Purpose
 
@@ -38,54 +39,130 @@ Layer 1: auth.users (Supabase, system-managed)
 └──► Layer 3b: public.network_members (0 or 1 per profile)
        id, user_id → profiles.id
        specialty, rate, availability
-       ─── "I pay this person / they're in my network" ───
+       ─── "They're in my network" ───
 ```
 
-One person = one User = one Profile.
-But they can be a client AND a network member simultaneously.
-A designer from the network brings their own project → now also a client.
-
 ### User Expansion Model
-
-The profile extends into domain tables as the person's
-relationship with the platform grows:
 
 ```
 User (authenticated)
   └── Profile (always exists)
         ├── Client (if they bring projects)
         │     └── sees: client dashboard, their projects,
-        │         invoices, messages with Pavel
+        │         invoices, messages
         │
-        ├── Network Member (if they're in Pavel's network)
-        │     └── sees: their assignments, briefs,
-        │         deliverables, group chats
+        ├── Network Member (if in Pavel's network)
+        │     └── sees: assignments, briefs, deliverables,
+        │         group chats
         │
         └── (future roles plug in here)
 ```
 
 ### Network Groups
 
-Network members can belong to groups — organized by project,
-specialty, or purpose. Groups mirror real-world communication
-channels (Telegram groups, WhatsApp chats).
+Network members belong to groups — organized by project,
+specialty, or purpose. Groups mirror real communication
+channels (Telegram, WhatsApp).
 
 ```
 Network
   ├── Group: "Dentour Design Team"
-  │     ├── Member: illustrator
-  │     ├── Member: 3D artist
   │     └── synced with: Telegram group
-  │
   ├── Group: "Legal & Finance"
-  │     ├── Member: lawyer
-  │     ├── Member: accountant
   │     └── synced with: WhatsApp group
-  │
   └── Group: "AI Dev Studio Core"
-        ├── Member: Sergey (legacy migrations)
         └── synced with: Telegram chat
 ```
+
+---
+
+## Security Architecture
+
+Seven layers of protection, from edge to database.
+
+### Layer 1: Edge (Cloudflare)
+
+First wall — before the request reaches the application.
+- DDoS protection (Cloudflare default)
+- Rate limiting by IP (login: max 5 attempts/min)
+- WAF rules — block SQL injection, XSS in headers
+- Bot protection — separate scripts from real users
+- Geo-blocking (if needed)
+
+### Layer 2: Transport (HTTPS + Headers)
+
+- TLS everywhere (Cloudflare automatic)
+- HSTS header — browser refuses HTTP
+- Cookie flags: `Secure`, `HttpOnly`, `SameSite=Lax`
+- CORS whitelist: only `pavelrapoport.com`
+  and `studio.pavelrapoport.com`
+- CSP headers — prevent XSS, restrict script sources
+
+### Layer 3: Authentication (Supabase Auth)
+
+- No passwords stored — magic link, SMS OTP, WhatsApp OTP
+- JWT with short TTL — access token 1 hour, refresh 7 days
+- Refresh token rotation — each refresh issues new token
+- Never use `user_metadata` in RLS policies — users can
+  modify it
+- Auth events logged — sign in, sign out, password reset
+
+### Layer 4: Middleware (@rapoport/auth)
+
+- Route protection — every route checked before render
+- Role check — admin/user at middleware level
+- Domain role check — client/network after base auth
+- CSRF protection — origin header verification
+- Input validation — zod schemas on every API endpoint
+- Output sanitization — strip sensitive fields by role
+
+### Layer 5: Row-Level Security (Supabase RLS)
+
+Last line of defense. Even if all above fails, data
+doesn't leak.
+- RLS enabled on EVERY table in public schema, no exceptions
+- Indexes on all RLS-referenced columns (100x performance)
+- `TO authenticated` on all policies — never rely on
+  `auth.uid()` alone to block anon
+- Security definer functions for complex join checks
+- Separate policies per operation: SELECT, INSERT, UPDATE,
+  DELETE — never `FOR ALL`
+- Tested with anon/user/admin roles in CI
+
+### Layer 6: Secrets Management
+
+- `anon_key` — safe on client, RLS protects
+- `service_role_key` — NEVER in client code, server only,
+  bypasses RLS
+- All integration API tokens encrypted at rest
+- Environment separation — different keys for dev/staging/prod
+- Key rotation schedule — periodic rotation, revoke on
+  compromise
+- Lint rule: no service key imports in `apps/`
+
+### Layer 7: Storage Security (Supabase Storage)
+
+- No uploads without RLS policies (Supabase default)
+- RLS on storage.objects — who can upload, to which paths
+- User files isolated by user_id folder structure
+- File type validation — reject unexpected formats
+- Size limits per upload
+
+### Risk Matrix
+
+| Risk | Likelihood | Prevention |
+|------|-----------|------------|
+| Missing RLS on table | High | CI: all public tables have RLS |
+| service_role key leaked to client | Medium | Lint rule in CI |
+| SQL injection | Low (Supabase parameterizes) | Zod + WAF |
+| Session hijacking | Low | HttpOnly + Secure + HSTS + short JWT |
+| Login brute force | Medium | Cloudflare rate limit (5/min) |
+| Anon sees private data | High without RLS | RLS + test suite |
+| Integration key compromise | Medium | Encryption + rotation + audit |
+| XSS attack | Medium | CSP headers + input sanitization |
+| CSRF attack | Low | Origin verification + SameSite cookie |
+
+---
 
 ## Requirements
 
@@ -96,9 +173,8 @@ via Supabase Auth.
 
 #### Scenario: Email login
 - **WHEN** a user enters their email
-- **THEN** the system sends a magic link to that email
+- **THEN** the system sends a magic link
 - **AND** clicking the link creates a session
-- **AND** no password is required
 
 #### Scenario: SMS login
 - **WHEN** a user enters their phone number
@@ -112,8 +188,7 @@ via Supabase Auth.
 
 #### Scenario: Auth method priority
 - **GIVEN** all three methods are available
-- **THEN** the default UI order is: Email → WhatsApp → SMS
-- **AND** the user can switch between methods freely
+- **THEN** default order: Email → WhatsApp → SMS
 
 ---
 
@@ -122,87 +197,67 @@ via Supabase Auth.
 The system SHALL support two base roles at launch.
 
 #### Scenario: Admin role
-- **GIVEN** Pavel is the only admin
 - **WHEN** Pavel authenticates
-- **THEN** he has full access to all domains, all projects,
-  all data across both apps
-- **AND** his role is `admin`
+- **THEN** role is `admin`, full access everywhere
 
 #### Scenario: User role
-- **GIVEN** a person registers on the platform
-- **WHEN** they authenticate
-- **THEN** they have role `user`
-- **AND** they see only what is explicitly shared with them
+- **WHEN** anyone else registers
+- **THEN** role is `user`, sees only shared content
 
 #### Scenario: Anonymous visitor
-- **GIVEN** a person visits without logging in
-- **THEN** they see only public content on web (landing, blog)
-- **AND** they cannot access studio
-- **AND** they can interact with the AI chat on the public site
+- **GIVEN** no login
+- **THEN** sees public web content + AI chat only
 
 ---
 
-### Requirement: Access Levels by Domain Role
+### Requirement: Access by Domain Role
 
-The system SHALL determine what a user sees based on
-their domain role (client, network member, or both).
+The system SHALL determine visibility based on domain
+role (client, network member, or both).
 
 #### Scenario: Client access
-- **GIVEN** a user has a client profile
-- **WHEN** they log in
-- **THEN** they see a client dashboard (not studio)
-- **AND** they see their projects, invoices, messages with Pavel
-- **AND** they cannot see other clients or internal data
+- **GIVEN** user has client profile
+- **THEN** sees client dashboard, their projects, invoices, messages
 
 #### Scenario: Network member access
-- **GIVEN** a user has a network member profile
-- **WHEN** they log in
-- **THEN** they see their assignments, briefs, deliverables
-- **AND** they see group chats they belong to
-- **AND** they cannot see client data or finances
+- **GIVEN** user has network member profile
+- **THEN** sees assignments, briefs, deliverables, group chats
 
-#### Scenario: Dual role access
-- **GIVEN** a user is both client and network member
-- **WHEN** they log in
-- **THEN** they see both: their client projects and their
-  network assignments
-- **AND** data is separated — client view vs network view
+#### Scenario: Dual role
+- **GIVEN** user is both client and network member
+- **THEN** sees both views, data separated
 
 ---
 
-### Requirement: Profile Creation
+### Requirement: Profile Auto-Creation
 
-The system SHALL auto-create a profile when a user registers.
+The system SHALL auto-create a profile on first login.
 
-#### Scenario: New user registration
-- **WHEN** a new user completes authentication for the first time
-- **THEN** a DB trigger creates a row in `public.profiles`
-- **AND** `profiles.id` = `auth.users.id`
-- **AND** role is set to `user`
-- **AND** display_name is derived from email or phone
+#### Scenario: New registration
+- **WHEN** new user completes first authentication
+- **THEN** DB trigger creates `public.profiles` row
+- **AND** `profiles.id = auth.users.id`
+- **AND** role = `user`
 
 #### Scenario: Admin seeding
-- **GIVEN** Pavel's account exists
-- **THEN** his profile has role `admin`
-- **AND** this is set via seed migration, not UI
+- **GIVEN** Pavel's account
+- **THEN** role = `admin` via seed migration
 
 ---
 
 ### Requirement: Multi-Domain Sessions
 
-The system SHALL maintain a single auth session across
-both subdomains.
+The system SHALL maintain a single session across both
+subdomains.
 
 #### Scenario: Cross-subdomain auth
-- **WHEN** a user logs in on either subdomain
-- **THEN** the cookie is set on `.pavelrapoport.com`
-- **AND** both pavelrapoport.com and studio.pavelrapoport.com
-  share the session
+- **WHEN** user logs in on either subdomain
+- **THEN** cookie set on `.pavelrapoport.com`
+- **AND** both subdomains share the session
 
 #### Scenario: Token refresh
-- **WHEN** the access token expires
-- **THEN** the refresh token renews it transparently
-- **AND** both apps receive the new token
+- **WHEN** access token expires
+- **THEN** refresh token renews transparently
 
 ---
 
@@ -211,17 +266,16 @@ both subdomains.
 The system SHALL handle the complete login lifecycle.
 
 #### Scenario: Login from protected page
-- **WHEN** an unauthenticated user navigates to a protected route
-- **THEN** they are redirected to login
-- **AND** the original URL is stored as `redirect_url`
-- **AND** after login, they are redirected back
+- **WHEN** unauthenticated user hits protected route
+- **THEN** redirect to login, store original URL
+- **AND** after login, redirect back
 
-#### Scenario: Post-login redirect
-- **GIVEN** no `redirect_url` is stored
+#### Scenario: Post-login redirect defaults
+- **GIVEN** no stored redirect URL
 - **THEN** admin → /studio
-- **AND** user with client profile → client dashboard
-- **AND** user with network profile → network dashboard
-- **AND** user with no domain profile → /
+- **AND** client → client dashboard
+- **AND** network member → assignments
+- **AND** user with no profile → /
 
 ---
 
@@ -230,39 +284,30 @@ The system SHALL handle the complete login lifecycle.
 The system SHALL handle logout across both domains.
 
 #### Scenario: Logout
-- **WHEN** a user clicks logout on any app
-- **THEN** the session is destroyed on Supabase
-- **AND** the cookie is cleared on `.pavelrapoport.com`
-- **AND** both apps lose the session simultaneously
-- **AND** the user is redirected to pavelrapoport.com
+- **WHEN** user clicks logout anywhere
+- **THEN** session destroyed on Supabase
+- **AND** cookie cleared on `.pavelrapoport.com`
+- **AND** both apps lose session
+- **AND** redirect to pavelrapoport.com
 
 ---
 
 ### Requirement: Email Flows
 
-The system SHALL handle transactional auth emails
-via Supabase (templates configured in dashboard).
+The system SHALL handle transactional auth emails via
+Supabase.
 
-#### Scenario: Magic link email
-- **WHEN** user requests magic link login
-- **THEN** Supabase sends email with login link
-- **AND** link expires after 1 hour
+#### Scenario: Magic link
+- **WHEN** user requests magic link
+- **THEN** Supabase sends email, link expires in 1 hour
 
 #### Scenario: Password reset
-- **WHEN** user requests password reset
-- **THEN** Supabase sends reset email
-- **AND** link opens a reset form
-- **AND** after reset, user is logged in automatically
+- **WHEN** user requests reset
+- **THEN** reset email sent, after reset auto-login
 
-#### Scenario: Email change confirmation
-- **WHEN** user changes their email in profile
-- **THEN** Supabase sends confirmation to new email
-- **AND** email updates only after confirmation
-
-#### Scenario: Signup confirmation
-- **WHEN** a new user registers via email
-- **THEN** Supabase sends confirmation email
-- **AND** account activates after confirmation
+#### Scenario: Email change
+- **WHEN** user changes email
+- **THEN** confirmation sent to new address, updates after click
 
 ---
 
@@ -272,16 +317,13 @@ The system SHALL enforce access control on every route
 via middleware.
 
 #### Scenario: Admin-only route
-- **WHEN** a non-admin navigates to /studio/finance
-- **THEN** access is denied, redirect to allowed area
+- **WHEN** non-admin hits /studio/finance → denied
 
-#### Scenario: Authenticated-only route
-- **WHEN** an anonymous visitor navigates to any protected route
-- **THEN** they are redirected to login
+#### Scenario: Auth-required route
+- **WHEN** anon hits protected route → redirect to login
 
 #### Scenario: Public route
-- **WHEN** anyone navigates to /, /blog, /blog/[slug]
-- **THEN** access is granted regardless of auth status
+- **WHEN** anyone hits /, /blog/* → allowed
 
 ---
 
@@ -291,11 +333,12 @@ The system SHALL use Supabase RLS policies to enforce
 data access at the database level.
 
 #### Scenario: Data isolation
-- **WHEN** a user queries any table
-- **THEN** admin sees all rows
-- **AND** users see only rows linked to their profile
-- **AND** RLS is the last line of defense — even if middleware
-  fails, data doesn't leak
+- **WHEN** user queries any table
+- **THEN** admin sees all, users see only their linked rows
+
+#### Scenario: RLS as fallback
+- **GIVEN** a middleware bug
+- **THEN** RLS still blocks unauthorized access
 
 ---
 
@@ -303,57 +346,73 @@ data access at the database level.
 
 The system SHALL handle expired sessions gracefully.
 
-#### Scenario: Active user session expires
-- **WHEN** a session expires while the user is on a page
-- **THEN** show a non-blocking notification: "Session expired"
-- **AND** offer re-login without losing page context
+#### Scenario: Active session expires
+- **WHEN** session expires during use
+- **THEN** non-blocking notification: "Session expired"
+- **AND** re-login without losing page context
+
+---
+
+### Requirement: Audit Trail
+
+The system SHALL log all security-relevant events.
+
+#### Scenario: Security event logging
+- **WHEN** any auth event occurs (login, logout, role change,
+  failed attempt, password reset)
+- **THEN** the event is logged with timestamp, user_id,
+  IP, action, success/failure
 
 ## Package: @rapoport/auth
 
-All auth logic lives here. Apps import hooks and middleware,
-never implement auth themselves.
+All auth logic lives here. Apps import, never implement.
 
 ### Exports
 
 **Hooks:**
 - `useAuth()` → { user, profile, role, isAdmin, isLoading }
-- `useRequireAuth(role?)` → redirects if not authenticated/authorized
+- `useRequireAuth(role?)` → redirect if not authorized
 - `useSession()` → { session, refresh, signOut }
 - `useDomainRole()` → { isClient, isNetworkMember, groups }
 
 **Middleware:**
-- `withAuth(handler)` → checks session, injects user + profile
-- `withRole(role, handler)` → checks role after auth
-- `authMiddleware(config)` → Next.js middleware for route protection
+- `withAuth(handler)` → check session, inject user + profile
+- `withRole(role, handler)` → check role after auth
+- `authMiddleware(config)` → Next.js middleware for routes
 
 **Server:**
-- `getServerSession(cookies)` → session from request cookies
+- `getServerSession(cookies)` → session from cookies
 - `getServerUser(cookies)` → user + profile + domain roles
 - `validateSession(token)` → verify + refresh if needed
 
+**Security:**
+- `validateInput(schema, data)` → zod validation
+- `sanitizeOutput(data, role)` → strip sensitive fields
+- `auditLog(action, userId, detail)` → security event log
+
 **Config:**
-- `AUTH_ROUTES` → map of public / auth-required / admin-only routes
+- `AUTH_ROUTES` → public / auth-required / admin-only map
 - `COOKIE_DOMAIN` → `.pavelrapoport.com`
-- `REDIRECT_DEFAULTS` → { admin: '/studio', client: '/dashboard', network: '/assignments', user: '/' }
+- `REDIRECT_DEFAULTS` → { admin, client, network, user }
 
 ### What is NOT in @rapoport/auth
 
-- **Login/registration UI** — forms, inputs, buttons live in `@rapoport/ui`
-- **Page-level layouts** — login page layout lives in the app
-- **Business logic** — what a user can do after auth is domain logic
+- **Login UI** — forms live in `@rapoport/ui`
+- **Page layouts** — login page layout lives in the app
+- **Business logic** — domain-level permissions are domain logic
 
 ## Entities
 
-- **User** — Supabase auth.users record (system-managed)
-- **Profile** — our extension of User. Has: id (= auth.users.id),
-  display_name, avatar_url, locale, role, created_at
-- **Session** — active auth session. Has: access_token,
-  refresh_token, expires_at
-- **Role** — `admin` or `user`. Stored in profiles table
+- **User** — Supabase auth.users (system-managed)
+- **Profile** — our extension: id, display_name, avatar_url,
+  locale, role, created_at
+- **Session** — access_token, refresh_token, expires_at
+- **Role** — `admin` or `user` (stored in profiles)
+- **AuditEvent** — timestamp, user_id, ip, action, success
 
 ## Dependencies
 
-- All domains depend on `auth` for access control
+- All domains depend on `auth`
 - `clients` — client profile extends User
 - `network` — network member profile extends User
 - `integrations` — WhatsApp Business API for WhatsApp login
