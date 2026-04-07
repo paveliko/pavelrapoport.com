@@ -79,7 +79,7 @@ The system SHALL organize blog content into predefined categories.
 
 ### Requirement: RSS Feed
 
-The system SHALL provide an RSS feed for published content.
+The system SHALL provide an RSS feed of published content.
 
 #### Scenario: RSS availability
 - **GIVEN** the blog has published content

@@ -286,3 +286,50 @@ In two years I see:
 
 This isn't a portfolio site. This is the operating system
 for who I'm becoming.
+
+## The Bigger Picture — Mapping the World
+
+We draw the world of Internet of Things.
+
+We connect what already exists — APIs, services, databases,
+devices, sensors, interfaces — and we design what doesn't
+exist yet. Today that means business platforms and creative
+tools. Tomorrow it means robots.
+
+We are the ones who build the new user interfaces for
+managing autonomous systems. We enter this space, we study
+it, we make complex dashboards and control panels.
+
+**Why dashboards and control panels matter:**
+
+Every manager — at a company, a bank, a government agency —
+wants to see dashboards. Everyone wants to see KPIs. Everyone
+wants to improve. And everything that can be measured can be
+improved. We know how to measure correctly and display it so
+that humans make better decisions.
+
+**The progression:**
+
+```
+Today:     Creative studio platform — build websites, apps, brands
+Near:      Complex dashboards — KPIs, data visualization, monitoring
+Next:      IoT interfaces — device management, sensor networks
+Future:    Robot control panels — autonomous systems, real-time telemetry
+```
+
+The Entity View System we build for projects and clients
+is the same system that can render a robot's status card,
+a sensor's telemetry detail view, a fleet's dashboard.
+The architecture is entity-agnostic by design.
+
+**What makes us different in this space:**
+
+We don't just display data. We design how data feels.
+Visual identity per entity. Brand DNA that makes a drone
+operator's dashboard feel different from a bank's portfolio
+view — even though the underlying component system is the same.
+
+Templates we build today become templates for IoT tomorrow.
+Entity View System → Device View System. Same architecture,
+new domain.
+

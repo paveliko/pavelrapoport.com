@@ -3426,6 +3426,381 @@ Step 6: INTEGRATE — place on screens
   → Verify layoutId morph works in real routing context
 ```
 
+### Component Anatomy — Three Render Layers
+
+**Every component exists in three visual states simultaneously.**
+When geometry changes in one — all three change together.
+
+```
+┌─────────────────────────────────────────────────┐
+│  WIREFRAME                                      │
+│  Structural blueprint. Boxes + labels.           │
+│  Shows: layout, hierarchy, content zones.        │
+│  No color, no style, no data.                    │
+│  Purpose: discuss WHAT goes WHERE                │
+│  When: design phase, Storybook documentation     │
+├─────────────────────────────────────────────────┤
+│  SKELETON                                       │
+│  Loading placeholder. Animated pulse.            │
+│  Same geometry as render, no content.            │
+│  Purpose: user sees structure while data loads   │
+│  When: data fetching, lazy load, transition      │
+├─────────────────────────────────────────────────┤
+│  RENDER                                         │
+│  Final state. Real data, real styles.            │
+│  Shows: content, colors, interactions.           │
+│  Purpose: the thing the user uses                │
+│  When: data loaded, component mounted            │
+└─────────────────────────────────────────────────┘
+```
+
+**The rule: geometry is shared.**
+
+```
+If a ProjectCard is 320×240 with:
+  - 48px header zone
+  - 140px content zone
+  - 52px action zone
+
+Then:
+  Wireframe:  3 boxes labeled "header", "content", "actions"
+  Skeleton:   3 pulse rectangles, same heights
+  Render:     real name, status badge, buttons
+
+Change card height to 280? All three update.
+Add a new zone? All three get it.
+```
+
+#### Wireframe conventions
+
+```
+Wireframes in Storybook — not Figma, not separate tool.
+Same component code, different render mode.
+
+How:
+  <ProjectCard mode="wireframe" />
+  <ProjectCard mode="skeleton" />
+  <ProjectCard mode="render" data={project} />
+
+Wireframe visual language:
+  ┌──────────────────────────┐
+  │ [■ icon] Title text      │  ← labeled box
+  │ ─── ─── ─── ─── ───     │  ← text placeholder (dashes)
+  │                          │
+  │ [status] [count] [date]  │  ← tagged zones
+  │                          │
+  │ [action] [action]        │  ← interactive zones
+  └──────────────────────────┘
+
+Colors:
+  Borders:    dashed, gray-300
+  Zones:      light fill (gray-50)
+  Labels:     small mono text (JetBrains Mono, 10px)
+  No color:   everything grayscale
+  No images:  crossed box placeholder
+```
+
+#### Skeleton conventions
+
+```
+Skeletons match the final geometry exactly.
+
+Rules:
+  1. Same width and height as render
+  2. Text → rounded rectangle, same line height
+  3. Avatar → circle, same diameter
+  4. Badge → small rounded rectangle
+  5. Image → rectangle with aspect ratio preserved
+  6. Pulse animation: opacity 0.4 → 0.7 → 0.4, 1.5s ease
+  7. No content, no text, no icons
+  8. Background: gray-100 (light) / gray-800 (dark)
+
+Implementation:
+  function ProjectCardSkeleton() {
+    return (
+      <div className="animate-pulse">
+        <div className="h-5 w-32 bg-muted rounded" />   {/* title */}
+        <div className="h-3 w-48 bg-muted rounded mt-2" /> {/* desc */}
+        <div className="flex gap-2 mt-4">
+          <div className="h-6 w-16 bg-muted rounded-full" /> {/* badge */}
+          <div className="h-6 w-12 bg-muted rounded" />     {/* count */}
+        </div>
+      </div>
+    );
+  }
+
+Skeleton generation rule:
+  Every Entity View component MUST export its skeleton.
+  ProjectCard → ProjectCardSkeleton
+  ProjectRow → ProjectRowSkeleton
+  ProjectDetail → ProjectDetailSkeleton
+
+  Skeletons are used in:
+    - Suspense fallback: <Suspense fallback={<ProjectCardSkeleton />}>
+    - List loading: Array(5).fill(0).map(i => <ProjectRowSkeleton />)
+    - Page transitions: skeleton while new data loads
+```
+
+#### Component render modes
+
+```typescript
+// Every entity view component supports three modes:
+
+type RenderMode = 'wireframe' | 'skeleton' | 'render';
+
+interface EntityViewProps<T> {
+  mode: RenderMode;
+  data?: T;            // required for 'render', ignored for others
+  config: ViewConfig;
+}
+
+// Implementation pattern:
+function ProjectCard({ mode, data, config }: EntityViewProps<ProjectVM>) {
+  if (mode === 'wireframe') return <ProjectCardWireframe config={config} />;
+  if (mode === 'skeleton') return <ProjectCardSkeleton />;
+  return <ProjectCardRender data={data!} config={config} />;
+}
+
+// Storybook shows all three:
+export const Wireframe: Story = { args: { mode: 'wireframe' } };
+export const Skeleton: Story = { args: { mode: 'skeleton' } };
+export const Default: Story = { args: { mode: 'render', data: mockProject } };
+export const Empty: Story = { args: { mode: 'render', data: emptyProject } };
+export const LongContent: Story = { args: { mode: 'render', data: longProject } };
+export const Error: Story = { args: { mode: 'render', data: null } };
+```
+
+#### Information hierarchy — what matters most
+
+```
+Every component has weighted information zones.
+Weight = visual prominence (size, contrast, position).
+
+WEIGHT SCALE:
+  1. PRIMARY   — first thing you see (largest, boldest, top-left)
+  2. SECONDARY — supports primary (smaller, less contrast)
+  3. TERTIARY  — available but quiet (smallest, muted color)
+  4. ACTION    — interactive elements (buttons, links)
+  5. META      — timestamps, counts, technical info
+
+Example — ProjectCard:
+  ┌──────────────────────────────────┐
+  │ Dentour Platform          [●]   │  ← PRIMARY: name, status dot
+  │ Dr. Petrov • Shaping            │  ← SECONDARY: client, phase
+  │                                 │
+  │ 12 entities  5 open tasks       │  ← TERTIARY: stats
+  │                                 │
+  │ Updated 2h ago     [Open] [···] │  ← META + ACTION
+  └──────────────────────────────────┘
+
+Weight determines:
+  - Font size: primary=base, secondary=sm, tertiary=xs, meta=xs
+  - Font weight: primary=semibold, secondary=medium, rest=normal
+  - Color: primary=foreground, secondary=muted-foreground,
+           tertiary=muted, meta=muted
+  - Position: primary=top, secondary=below primary,
+              actions=bottom-right, meta=bottom-left
+
+When space is limited (Row view), drop from bottom:
+  Row shows: PRIMARY + SECONDARY + one ACTION
+  Card shows: PRIMARY + SECONDARY + TERTIARY + ACTIONS
+  Detail shows: everything + expanded sections
+```
+
+#### Behavior states and transitions
+
+```
+Every component has BEHAVIOR STATES beyond loading:
+
+VIEW MODE (default):
+  Content visible, read-only
+  Click → action (navigate, expand, select)
+  Hover → subtle highlight + reveal action buttons
+
+EDIT MODE (inline):
+  Content becomes editable (input fields replace text)
+  Trigger: click "Edit" button or double-click field
+  Save: Enter or click "Save"
+  Cancel: Escape or click outside
+  Visual: border changes to input style, bg becomes white
+
+SELECTED MODE:
+  Part of a multi-select (checkbox, bulk actions)
+  Visual: accent border, subtle accent background
+  Available on: Row, Card (not Inline, not Detail)
+
+EXPANDED MODE:
+  Content grows (accordion, show more)
+  Trigger: click expand arrow or "Show more"
+  Visual: smooth height animation (Motion)
+
+DRAGGING MODE:
+  Being repositioned (in kanban, priority reorder)
+  Visual: elevated shadow, slight rotation, reduced opacity on origin
+
+ERROR MODE:
+  Data failed to load or action failed
+  Visual: destructive border, error message, retry button
+  Never blank — always show what went wrong + how to fix
+
+EMPTY MODE:
+  No data yet (new entity, no assets uploaded)
+  Visual: dashed border, icon + prompt text
+  "No creative assets yet. Upload the first one."
+```
+
+#### Flow documentation — wireframe-first
+
+```
+Complex interactions are documented as FLOWS before coding.
+Flows use wireframe-style diagrams in Storybook MDX.
+
+Example: Create Project Flow
+
+Step 1: TRIGGER
+  ┌─────────────────────────────────────┐
+  │ Dashboard                           │
+  │                                     │
+  │  [+ New Project]  ← click           │
+  └─────────────────────────────────────┘
+
+Step 2: WIZARD opens (Dialog)
+  ┌─────────────────────────────────────┐
+  │ Create Project                  [×] │
+  │─────────────────────────────────────│
+  │ Step 1 of 3: Basics                 │
+  │ ● ○ ○                              │
+  │                                     │
+  │ Project name:  [____________]       │
+  │ Client:        [Select... ▾]        │
+  │ Source:        ○ New  ○ From Canvas  │
+  │                                     │
+  │              [Cancel]  [Next →]      │
+  └─────────────────────────────────────┘
+
+Step 3: WIZARD step 2
+  ┌─────────────────────────────────────┐
+  │ Create Project                  [×] │
+  │─────────────────────────────────────│
+  │ Step 2 of 3: Domain                 │
+  │ ○ ● ○                              │
+  │                                     │
+  │ Initial entities:                   │
+  │  [+ Add entity]                     │
+  │  ┌──────────────────────────┐       │
+  │  │ User  • user  [×]       │       │
+  │  └──────────────────────────┘       │
+  │                                     │
+  │       [← Back]  [Next →]           │
+  └─────────────────────────────────────┘
+
+Step 4: WIZARD step 3 (confirm)
+  ┌─────────────────────────────────────┐
+  │ Create Project                  [×] │
+  │─────────────────────────────────────│
+  │ Step 3 of 3: Confirm                │
+  │ ○ ○ ●                              │
+  │                                     │
+  │ Dentour Platform                    │
+  │ Client: Dr. Petrov                  │
+  │ Entities: User, Clinic, Booking     │
+  │ Integrations: GitHub, Linear        │
+  │                                     │
+  │     [← Back]  [Create Project]      │
+  └─────────────────────────────────────┘
+
+Step 5: RESULT
+  → Redirect to /studio/projects/dentour/domain
+  → Toast: "Project created"
+  → Skeleton → data loads → render
+
+Each step: wireframe → skeleton → render.
+```
+
+#### Wizard / Stepper pattern
+
+```
+Wizards decompose complex creation into guided steps.
+
+When to use a wizard:
+  - Creating entity with 5+ required fields
+  - Multi-step process with dependencies
+  - Onboarding flows
+  - Settings that affect multiple systems
+
+Pattern:
+  <Wizard steps={steps} onComplete={handleComplete}>
+    <WizardStep title="Basics" validation={step1Schema}>
+      {(form) => <Step1Form form={form} />}
+    </WizardStep>
+    <WizardStep title="Domain" validation={step2Schema}>
+      {(form) => <Step2Form form={form} />}
+    </WizardStep>
+    <WizardStep title="Confirm" summary>
+      {(allData) => <ConfirmStep data={allData} />}
+    </WizardStep>
+  </Wizard>
+
+Rules:
+  1. Each step validates before allowing "Next"
+  2. "Back" preserves entered data
+  3. Step indicator shows progress (● ○ ○)
+  4. Last step is always "Confirm" — summary of all inputs
+  5. Keyboard: Enter = Next, Escape = Cancel
+  6. Data persists in local state until final submit
+  7. On error: highlight failed step, scroll to error
+  8. Max 5 steps — if more needed, split into sub-flows
+```
+
+#### Geometry contracts
+
+```
+When a component's geometry changes, three things update:
+
+1. WIREFRAME updates (zone layout changes)
+2. SKELETON updates (placeholder geometry matches)
+3. RENDER updates (content layout changes)
+
+This is enforced by sharing geometry tokens:
+
+  // Shared geometry — single source of truth
+  const PROJECT_CARD_GEOMETRY = {
+    width: 320,
+    minHeight: 240,
+    headerHeight: 48,
+    contentMinHeight: 140,
+    actionBarHeight: 52,
+    padding: 16,
+    gap: 12,
+    borderRadius: 12,
+  };
+
+  // Wireframe reads geometry:
+  function ProjectCardWireframe() {
+    const g = PROJECT_CARD_GEOMETRY;
+    return <WireframeBox width={g.width} height={g.minHeight}>
+      <Zone height={g.headerHeight} label="header" />
+      <Zone height={g.contentMinHeight} label="content" />
+      <Zone height={g.actionBarHeight} label="actions" />
+    </WireframeBox>;
+  }
+
+  // Skeleton reads same geometry:
+  function ProjectCardSkeleton() {
+    const g = PROJECT_CARD_GEOMETRY;
+    return <div style={{ width: g.width, minHeight: g.minHeight }}>
+      <PulseRect height={g.headerHeight} />
+      <PulseRect height={g.contentMinHeight} />
+      <PulseRect height={g.actionBarHeight} />
+    </div>;
+  }
+
+  // Render uses same geometry via Tailwind classes
+  // that map to these tokens.
+
+Change geometry in ONE place → all three states update.
+```
+
 ### Entity View System — Known Limitations
 
 Documented for honest planning:

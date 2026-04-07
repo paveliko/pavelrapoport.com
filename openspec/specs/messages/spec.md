@@ -115,7 +115,7 @@ The system SHALL notify relevant parties of events.
 
 ### Requirement: Chat History
 
-The system SHALL persist and make searchable all conversation history.
+The system SHALL persist and allow searching of all conversations.
 
 #### Scenario: Search messages
 - **WHEN** Pavel searches for text across all conversations

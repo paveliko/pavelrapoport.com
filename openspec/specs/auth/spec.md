@@ -504,7 +504,7 @@ The system SHALL support two base roles at launch.
 
 ### Requirement: Access by Domain Role
 
-The system SHALL grant access based on domain role (client or network member).
+The system SHALL grant access based on domain-specific roles.
 
 #### Scenario: Client access
 - **GIVEN** user has client profile
@@ -522,7 +522,7 @@ The system SHALL grant access based on domain role (client or network member).
 
 ### Requirement: Profile Auto-Creation
 
-The system SHALL automatically create a profile for every new user.
+The system SHALL auto-create a profile for every new user.
 
 #### Scenario: New registration
 - **WHEN** new user completes first authentication
@@ -538,7 +538,7 @@ The system SHALL automatically create a profile for every new user.
 
 ### Requirement: Multi-Domain Sessions
 
-The system SHALL maintain a single session across all subdomains.
+The system SHALL share sessions across all platform subdomains.
 
 #### Scenario: Cross-subdomain auth
 - **WHEN** user logs in on either subdomain
@@ -553,7 +553,7 @@ The system SHALL maintain a single session across all subdomains.
 
 ### Requirement: Login Flow
 
-The system SHALL redirect unauthenticated users to login and restore their destination after authentication.
+The system SHALL handle login redirects and post-login routing.
 
 #### Scenario: Login from protected page
 - **WHEN** unauthenticated user hits protected route
@@ -584,7 +584,7 @@ The system SHALL destroy sessions across all subdomains on logout.
 
 ### Requirement: Email Flows
 
-The system SHALL support magic link, password reset, and email change flows.
+The system SHALL support email-based authentication flows.
 
 #### Scenario: Magic link
 - **WHEN** user requests magic link
@@ -602,7 +602,7 @@ The system SHALL support magic link, password reset, and email change flows.
 
 ### Requirement: Route Protection
 
-The system SHALL enforce route-level access control based on role.
+The system SHALL enforce route-level access control by role.
 
 #### Scenario: Admin-only route
 - **WHEN** non-admin hits /studio/finance → denied
@@ -617,7 +617,7 @@ The system SHALL enforce route-level access control based on role.
 
 ### Requirement: Row-Level Security
 
-The system SHALL enforce row-level security on every table in the public schema.
+The system SHALL enforce row-level security on every public table.
 
 #### Scenario: Data isolation
 - **WHEN** user queries any table
@@ -638,7 +638,7 @@ The system SHALL enforce row-level security on every table in the public schema.
 
 ### Requirement: Session Expiry
 
-The system SHALL handle session expiry, revocation, and self-service session management.
+The system SHALL handle session expiration and revocation gracefully.
 
 #### Scenario: Active session expires
 - **WHEN** session expires during use

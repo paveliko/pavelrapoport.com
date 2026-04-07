@@ -174,7 +174,7 @@ The system SHALL track domain expiration dates.
 
 ### Requirement: Domain Removal
 
-The system SHALL allow organization owners to remove domains with impact confirmation.
+The system SHALL allow organization owners to remove domains safely.
 
 #### Scenario: Removing a domain
 - **WHEN** an org owner removes a domain

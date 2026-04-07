@@ -49,7 +49,7 @@ The site SHALL display case studies linked to the `blog` domain.
 
 ### Requirement: SEO & Meta
 
-The system SHALL provide proper SEO metadata and structured data for all pages.
+The system SHALL provide proper SEO metadata on every page.
 
 #### Scenario: Search engine indexing
 - **WHEN** Google crawls pavelrapoport.com
@@ -64,7 +64,7 @@ The system SHALL provide proper SEO metadata and structured data for all pages.
 
 ### Requirement: Multi-Language
 
-The system SHALL support multiple languages with automatic detection.
+The system SHALL support multiple languages with RTL layout.
 
 #### Scenario: Language detection
 - **WHEN** a visitor arrives
@@ -79,7 +79,7 @@ The system SHALL support multiple languages with automatic detection.
 
 ### Requirement: Performance
 
-The system SHALL meet Core Web Vitals targets on all public pages.
+The system SHALL meet Core Web Vitals thresholds on all public pages.
 
 #### Scenario: Core Web Vitals
 - **GIVEN** the public site
@@ -88,7 +88,7 @@ The system SHALL meet Core Web Vitals targets on all public pages.
 
 ### Requirement: Shareable Domain Maps
 
-The system SHALL generate shareable read-only links for completed Canvas sessions.
+The system SHALL generate shareable links for completed Canvas sessions.
 
 #### Scenario: Sharing a Canvas session
 - **WHEN** a Canvas session is completed

@@ -57,9 +57,8 @@ The studio SHALL display the full lifecycle of changes:
 spec → propose → review → PR → ship.
 
 #### Scenario: Viewing the pipeline
-- **WHEN** Pavel opens the pipeline view for a project
-- **THEN** he sees all changes grouped by phase
-- **AND** each change shows its current status and assignee
+- **WHEN** Pavel opens a project's pipeline in studio
+- **THEN** he sees all changes and their current phase in the lifecycle
 
 ## Entities
 
