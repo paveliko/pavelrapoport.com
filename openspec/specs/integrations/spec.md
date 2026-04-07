@@ -87,6 +87,49 @@ securely and never exposed in logs or UI.
 - **THEN** the token is encrypted at rest
 - **AND** only the connection type and status are visible in UI
 
+### Requirement: Webhook Security
+
+Every incoming webhook SHALL be verified before processing.
+
+#### Scenario: Linear webhook received
+- **WHEN** the API receives a POST to `/webhooks/linear`
+- **THEN** the system reads the `X-Linear-Signature` header
+- **AND** computes HMAC-SHA256 of the raw body using the
+  stored `linear_webhook_secret`
+- **AND** if signatures match → process the webhook
+- **AND** if signatures don't match → return 401, log the attempt
+
+#### Scenario: GitHub webhook received
+- **WHEN** the API receives a POST to `/webhooks/github`
+- **THEN** the system reads the `X-Hub-Signature-256` header
+- **AND** computes HMAC-SHA256 of the raw body using the
+  stored `github_webhook_secret`
+- **AND** if signatures match → process the webhook
+- **AND** if signatures don't match → return 401, log the attempt
+
+#### Scenario: Unknown webhook source
+- **WHEN** a POST arrives at any `/webhooks/*` endpoint
+  without a valid signature header
+- **THEN** the system returns 401 immediately
+- **AND** logs: timestamp, IP, path, headers (no body)
+
+#### Scenario: Webhook idempotency
+- **WHEN** the same webhook is delivered twice
+  (Linear/GitHub retry on timeout)
+- **THEN** the system checks a delivery ID
+  (`X-Linear-Delivery` / `X-GitHub-Delivery`)
+- **AND** if already processed → return 200, skip processing
+- **AND** if new → process normally
+
+**Rules:**
+```
+1. NEVER process a webhook without signature verification
+2. NEVER parse the body before verifying the signature
+3. Store delivery IDs for 7 days to prevent duplicate processing
+4. Webhook secrets are per-connection, stored in secrets-registry
+5. Log all webhook attempts (success + failure) to activity_log
+```
+
 ### Requirement: Supported Integrations
 
 The system SHALL support the following integration types:
