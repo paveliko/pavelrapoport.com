@@ -1739,6 +1739,97 @@ Toast:          → role="alert", auto-dismiss after 5s, dismissible
 Loading:        → aria-busy="true" on container, skeleton over spinner
 ```
 
+### Complex Components
+
+**Domain Map (React Flow):**
+
+React Flow renders SVG/canvas — invisible to screen readers.
+Every domain map MUST have a text alternative.
+
+```
+Visual graph (sighted users):
+  ┌──────┐     browses     ┌────────┐
+  │Patient│ ──────────────→ │ Clinic │
+  └──────┘                  └────────┘
+
+Text alternative (screen readers):
+  "Domain map: 2 entities, 1 relationship.
+   Entities: Patient (user), Clinic (service).
+   Relationships: Patient browses Clinic."
+```
+
+Implementation:
+
+```
+1. Text list view toggle:
+   → Button: "Switch to list view" (always visible)
+   → List view shows all entities + relationships as text
+   → Keyboard navigable (Tab between items)
+   → Each item: entity name, category, attributes count,
+     connected entities
+
+2. aria-live announcements:
+   → When entity appears during Canvas chat:
+     <div aria-live="polite" class="sr-only">
+       New entity added: Patient (user type)
+     </div>
+   → When relationship forms:
+     "New connection: Patient browses Clinic"
+
+3. Keyboard navigation in graph:
+   → Tab: move between nodes
+   → Enter: open entity detail panel
+   → Arrow keys: follow relationships
+   → Escape: back to chat
+
+4. Graph summary:
+   → aria-label on graph container:
+     "Domain map with 5 entities and 7 relationships"
+   → Updated every time graph changes
+```
+
+**Chat Interface (Muse streaming):**
+
+```
+1. Message container:
+   → role="log" aria-live="polite"
+   → Screen reader announces complete messages,
+     NOT partial streaming tokens
+
+2. Implementation:
+   → Buffer streamed tokens in hidden element
+   → On stream complete: move full message to visible
+     container with aria-live
+   → Screen reader hears the complete response once
+
+3. Chat input:
+   → aria-label="Message to Muse"
+   → Announce remaining messages: "12 of 20 messages used"
+   → On session end: announce "Session complete"
+```
+
+**Pipeline Board (Kanban):**
+
+```
+1. Keyboard operation:
+   → Tab: move between cards in a column
+   → Arrow left/right: move between columns
+   → Space: pick up card
+   → Arrow left/right (while holding): move to adjacent column
+   → Space: drop card
+   → Escape: cancel move
+
+2. Announcements:
+   → On pick up: "Picked up: Setup Supabase. Column: Draft"
+   → On move: "Moved to column: In Progress"
+   → On drop: "Dropped: Setup Supabase in In Progress"
+
+3. Alternative:
+   → "Switch to list view" button
+   → Shows all cards grouped by status as a flat list
+   → Status change via dropdown, not drag
+```
+
 ### Testing
 
 ```
