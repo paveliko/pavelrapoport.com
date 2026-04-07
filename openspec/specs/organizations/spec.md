@@ -42,7 +42,7 @@ are members with roles. This covers all cases:
 |----------|-------------|---------|
 | Company orders a project | "Dentour Ltd" | CEO (admin), designer (member) |
 | Partnership | "Pavel + Sergey" | Both as owners |
-| Pavel's own work | "Pavel Rapoport Studio" | Pavel (owner) — auto-created |
+| Pavel's own work | "Pavel Rapoport" | Pavel (owner) — auto-created |
 | Government contract | "Ministry of Health" | Contact person (admin) |
 | Solo client | "John Doe" | John (owner) — personal org |
 

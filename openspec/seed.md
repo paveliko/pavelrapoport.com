@@ -17,9 +17,10 @@ Profile:
 
 ```
 Organization:
-  name: Pavel Rapoport Studio
-  slug: rapoport-studio
-  type: company
+  name: Pavel Rapoport
+  slug: rapoport
+  type: personal
+  subtitle: AI Development Studio
   
   Members:
     - hello@pavelrapoport.com
@@ -31,7 +32,7 @@ Organization:
 ```
 Domain:
   name: pavelrapoport.com
-  organization: rapoport-studio
+  organization: rapoport
   registrar: (current registrar)
   dns_provider: cloudflare
   status: active
@@ -60,7 +61,7 @@ Domain:
 Project:
   name: pavelrapoport.com
   slug: pavelrapoport
-  organization: rapoport-studio
+  organization: rapoport
   status: building
   created_by: hello@pavelrapoport.com
 ```
@@ -68,7 +69,7 @@ Project:
 ## Connections (global)
 
 ```
-Global connections (owned by rapoport-studio):
+Global connections (owned by rapoport):
 
   - type: claude_api
     scope: global

@@ -1803,7 +1803,7 @@ All proxied through Cloudflare (CNAME, orange cloud ON).
 Account:     hello@pavelrapoport.com (professional identity)
              NOT gmail. This is the business account.
 Plan:        Free (1 user) → Basic ($8/mo) when Misha joins
-Workspace:   VIVOD (or rename to "Pavel Rapoport Studio")
+Workspace:   VIVOD (or rename to "Pavel Rapoport")
 ```
 
 **Team-per-client model:**

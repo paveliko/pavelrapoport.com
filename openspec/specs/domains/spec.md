@@ -216,7 +216,7 @@ The system SHALL manage Pavel's platform domains separately.
   - pavelrapoport.com → web app
   - studio.pavelrapoport.com → studio app
 - **THEN** these belong to the platform organization
-  ("Pavel Rapoport Studio")
+  ("Pavel Rapoport")
 - **AND** are managed by platform admin only
 - **AND** cannot be deleted through the regular UI
 
