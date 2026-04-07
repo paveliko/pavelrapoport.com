@@ -239,6 +239,99 @@ Every month, verify:
   □ Secrets registry matches actual deployed secrets
 ```
 
+### Layer 9: Privacy & Data Protection
+
+Applies to: GDPR (EU clients), Israeli Privacy Protection
+Law (5741-1981), and general data ethics.
+
+**What personal data we store:**
+
+```
+profiles:          display_name, avatar_url, locale
+clients:           company, source, budget_range, fit_score
+network_members:   specialty, rate, availability
+canvas_sessions:   messages (conversation text), domain_graph
+auth.users:        email, phone (Supabase-managed)
+activity_log:      user_id, IP address, action
+invoices:          client name, amounts, bank details
+contracts:         signed documents with names
+```
+
+**Data retention policy:**
+
+```
+Active data:       retained while account/project is active
+Completed projects: retained 2 years after completion,
+                    then archived (not deleted)
+Deleted accounts:  personal data removed within 30 days
+                    of deletion request
+Canvas sessions:   anonymous sessions: 90 days
+                   accepted sessions: follows project lifecycle
+Audit logs:        retained 3 years (legal requirement)
+Backups:           follow retention schedule (7 daily,
+                   4 weekly, 3 monthly)
+```
+
+**User rights (GDPR Articles 15-20):**
+
+```
+Right to access:
+  → User can request: "What data do you have on me?"
+  → System generates a JSON/PDF export of all their data
+  → Delivered within 30 days
+
+Right to rectification:
+  → User can update their own profile data at any time
+  → For data user cannot edit: request to admin, fix in 7 days
+
+Right to erasure ("right to be forgotten"):
+  → User requests account deletion
+  → System deletes within 30 days:
+    - profile, client record, network record
+    - their messages in conversations
+    - their canvas sessions (if no active project)
+    - their auth.users record (Supabase)
+  → System RETAINS (anonymized):
+    - invoices (legal/tax requirement, name replaced with ID)
+    - audit logs (security requirement, user_id only)
+    - project data they contributed to (anonymized)
+
+Right to data portability:
+  → User can export their data in machine-readable format (JSON)
+  → Includes: profile, projects, messages, specs, invoices
+
+Right to restrict processing:
+  → User can request: "Stop using my data but don't delete"
+  → System sets account to "restricted" — no AI processing,
+    no analytics, no outreach. Data retained but frozen.
+```
+
+**Consent tracking:**
+
+```
+On registration, user consents to:
+  □ Terms of service (required)
+  □ Privacy policy (required)
+  □ AI processing of conversations (required for Canvas)
+  □ Marketing communications (optional)
+
+Consent stored in:
+  profiles.consents: jsonb {
+    terms: { version: "1.0", accepted_at: timestamp },
+    privacy: { version: "1.0", accepted_at: timestamp },
+    ai_processing: { version: "1.0", accepted_at: timestamp },
+    marketing: { accepted: boolean, updated_at: timestamp }
+  }
+```
+
+**Data Processing Agreement (DPA):**
+
+```
+For clients whose data we process (Canvas sessions,
+project data): DPA template available, signed on request.
+Standard Contractual Clauses (SCC) for EU→Moldova transfers.
+```
+
 ---
 
 ## Requirements
@@ -299,6 +392,31 @@ The system SHALL require MFA for admin accounts.
 
 **Implementation:** Supabase Auth supports TOTP MFA natively.
 No external service needed.
+
+---
+
+### Requirement: Privacy Rights
+
+The system SHALL support user data rights as defined
+in Layer 9: Privacy & Data Protection.
+
+#### Scenario: User requests data export
+- **WHEN** a user requests "export my data"
+- **THEN** the system generates a JSON file with all their data:
+  profile, projects, messages, specs, invoices
+- **AND** delivers it within 30 days (automated: within 24 hours)
+
+#### Scenario: User requests account deletion
+- **WHEN** a user requests account deletion
+- **THEN** the system shows what will be deleted vs retained
+- **AND** requires confirmation
+- **AND** deletes personal data within 30 days
+- **AND** retains anonymized invoices and audit logs
+
+#### Scenario: User withdraws marketing consent
+- **WHEN** a user unchecks marketing communications
+- **THEN** the system updates `profiles.consents.marketing`
+- **AND** all future marketing emails are blocked immediately
 
 ---
 
