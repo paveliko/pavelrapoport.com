@@ -269,6 +269,39 @@ via Supabase Auth.
 
 ---
 
+### Requirement: Multi-Factor Authentication
+
+The system SHALL require MFA for admin accounts.
+
+#### Scenario: Admin MFA enrollment
+- **WHEN** a user is assigned the `admin` role
+- **THEN** the system requires TOTP setup before granting admin access
+- **AND** the user scans a QR code with an authenticator app
+  (Google Authenticator, Authy, 1Password)
+- **AND** the system verifies a one-time code to confirm enrollment
+
+#### Scenario: Admin login with MFA
+- **WHEN** an admin authenticates via any method (email, SMS, WhatsApp)
+- **THEN** after primary auth, the system requires a TOTP code
+- **AND** only after valid TOTP is the admin session created
+
+#### Scenario: MFA not enrolled — admin blocked
+- **GIVEN** a user with `admin` role has not enrolled MFA
+- **WHEN** they attempt to access /studio
+- **THEN** they are redirected to MFA enrollment screen
+- **AND** no admin functionality is available until MFA is active
+
+#### Scenario: MFA recovery
+- **GIVEN** an admin has lost their authenticator device
+- **THEN** recovery via backup codes (generated at enrollment, 10 codes)
+- **AND** if backup codes are also lost: manual recovery via
+  Supabase dashboard (requires direct DB access)
+
+**Implementation:** Supabase Auth supports TOTP MFA natively.
+No external service needed.
+
+---
+
 ### Requirement: Roles
 
 The system SHALL support two base roles at launch.
