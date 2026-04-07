@@ -49,17 +49,17 @@ clients, and network members.
 The system SHALL notify relevant parties of new messages,
 new leads, and task updates.
 
-#### Scenario: New lead notification
-- **WHEN** a visitor starts a chat and is qualified as a lead
-- **THEN** Pavel receives a notification
+#### Scenario: New message notification
+- **WHEN** a new message arrives in a conversation
+- **THEN** all participants are notified
 
 ### Requirement: Chat History
 
 All conversations SHALL be searchable and linked to projects.
 
-#### Scenario: Searching conversation history
-- **WHEN** Pavel searches for a keyword in messages
-- **THEN** matching conversations appear with project links
+#### Scenario: Searching chat history
+- **WHEN** a user searches conversations by keyword
+- **THEN** matching messages are returned with project context
 
 ## Entities
 
@@ -73,4 +73,4 @@ All conversations SHALL be searchable and linked to projects.
 - `ai` — bot logic for the chat interface
 - `clients` — entity creation from chat
 - `projects` — conversations linked to projects
-- `web` — chat lives on the public site
+- `site` — chat lives on the public site

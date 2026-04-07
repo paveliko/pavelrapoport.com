@@ -28,11 +28,6 @@ Modes:
 - **Scout** — scans existing codebases, extracts specs
 - **Architect** — takes tasks, generates proposal → design → tasks
 - **Builder** — executes approved plans, writes code, opens PRs
-- **Listener** — background process, ingests ideas from any channel
-  (voice, text, email), classifies (new idea / enrichment of existing),
-  extracts entities, creates draft projects, generates draft specs.
-  Adapts spec style by sphere: government (security focus),
-  business (speed focus), creative (minimal specs, fast POC)
 
 ### Requirement: Agent Configuration
 
@@ -49,8 +44,8 @@ The system SHALL support selecting which AI model handles
 which task.
 
 #### Scenario: Assigning a model to a task type
-- **WHEN** Pavel configures which model handles a task type
-- **THEN** the agent uses the selected model for that task
+- **WHEN** Pavel selects an AI model for a specific task type
+- **THEN** all subsequent tasks of that type use the selected model
 
 ### Requirement: Token Tracking
 
@@ -67,8 +62,8 @@ The agent SHALL have access to Pavel's stack preferences,
 standards, and conventions as persistent context.
 
 #### Scenario: Agent uses project conventions
-- **WHEN** the agent generates code or specs
-- **THEN** it applies conventions from the knowledge base
+- **WHEN** the agent operates within a project scope
+- **THEN** it applies conventions and standards from the knowledge base
 
 ## Entities
 
@@ -82,5 +77,4 @@ standards, and conventions as persistent context.
 - `messages` — Canvas mode serves the chat interface
 - `studio` — Architect and Builder modes serve the pipeline
 - `projects` — agent operates within project scope
-- `integrations` — AI model connections feed into the agent
 - `finance` — token costs feed into finance

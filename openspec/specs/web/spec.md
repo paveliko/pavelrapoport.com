@@ -4,7 +4,7 @@
 
 ## Purpose
 
-**For whom:** Potential clients, partners, anyone who finds Pavel Rappoport.
+**For whom:** Potential clients, partners, anyone who finds Pavel Rapoport.
 
 **Why it exists:** Sells without selling. Shows who Pavel is, what he
 delivers, and proves it with numbers. The site itself demonstrates the value.
@@ -35,8 +35,8 @@ The site SHALL include proper meta tags, open graph, and structured data
 for search engine visibility and social sharing.
 
 #### Scenario: Search engine indexing
-- **WHEN** a search engine crawls a public page
-- **THEN** it finds proper meta tags, open graph, and structured data
+- **WHEN** a search engine crawls the site
+- **THEN** it finds valid meta tags, open graph, and structured data on every page
 
 ## Entities
 

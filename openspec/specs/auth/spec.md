@@ -58,65 +58,6 @@ User (authenticated)
         └── (future roles plug in here)
 ```
 
-### Access Model: Three Levels
-
-Three levels of access, nested:
-
-```
-Platform (role: admin | user)
-  └── Organization (org_role: owner | admin | member | viewer)
-        └── Project (assigned | not assigned)
-```
-
-Access check — three questions in order:
-1. Authenticated? → no → redirect to login
-2. Member of the project's organization? → no → 403
-3. Has access to this project?
-   - org owner/admin → YES, all org projects
-   - org member/viewer → only if assigned
-   - platform admin → YES, everything everywhere
-
-Database tables for access:
-
-```
-organization_members:
-  id, organization_id → organizations.id,
-  user_id → profiles.id,
-  org_role (owner | admin | member | viewer),
-  joined_at
-
-project_assignments:
-  id, project_id → projects.id,
-  user_id → profiles.id
-```
-
-RLS function — single security definer:
-
-```
-can_access_project(project_id uuid) returns boolean:
-  - platform admin (profiles.role = 'admin') → true
-  - org owner/admin of project's org → true
-  - assigned to project via project_assignments → true
-  - otherwise → false
-```
-
-### Permission Map
-
-Static permission map in `@rapoport/auth`, no external
-RBAC tools needed at this scale:
-
-```
-ORG_PERMISSIONS:
-  owner:  ['*']
-  admin:  ['projects.manage', 'members.invite', 'members.remove',
-           'specs.edit', 'pipeline.approve']
-  member: ['projects.view', 'specs.view', 'deliverables.upload',
-           'messages.send']
-  viewer: ['projects.view', 'specs.view']
-```
-
-One function: `hasPermission(orgRole, action)` → boolean
-
 ### Network Groups
 
 Network members belong to groups — organized by project,
@@ -253,42 +194,25 @@ via Supabase Auth.
 
 ### Requirement: Roles
 
-The system SHALL support two platform-level roles and
-four organization-level roles.
-
-Platform roles (`profiles.role`):
-- `admin` — platform-wide access (Pavel)
-- `user` — default, scoped by org membership
-
-Organization roles (`organization_members.org_role`):
-- `owner` — full access, billing, delete org
-- `admin` — manage projects and members
-- `member` — work on assigned projects
-- `viewer` — read-only on assigned projects
+The system SHALL support two base roles at launch.
 
 #### Scenario: Admin role
 - **WHEN** Pavel authenticates
-- **THEN** platform role is `admin`, full access everywhere
+- **THEN** role is `admin`, full access everywhere
 
 #### Scenario: User role
 - **WHEN** anyone else registers
-- **THEN** platform role is `user`, access scoped by org membership
+- **THEN** role is `user`, sees only shared content
 
 #### Scenario: Anonymous visitor
 - **GIVEN** no login
 - **THEN** sees public web content + AI chat only
 
-#### Scenario: Org role determines project access
-- **GIVEN** user is member of an organization
-- **THEN** org owner/admin sees all org projects
-- **AND** org member/viewer sees only assigned projects
-
 ---
 
 ### Requirement: Access by Domain Role
 
-The system SHALL determine visibility based on domain
-role (client, network member, or both).
+The system SHALL grant access based on domain-specific roles.
 
 #### Scenario: Client access
 - **GIVEN** user has client profile
@@ -306,7 +230,7 @@ role (client, network member, or both).
 
 ### Requirement: Profile Auto-Creation
 
-The system SHALL auto-create a profile on first login.
+The system SHALL automatically create a profile for every new user.
 
 #### Scenario: New registration
 - **WHEN** new user completes first authentication
@@ -322,8 +246,7 @@ The system SHALL auto-create a profile on first login.
 
 ### Requirement: Multi-Domain Sessions
 
-The system SHALL maintain a single session across both
-subdomains.
+The system SHALL maintain a single session across all subdomains.
 
 #### Scenario: Cross-subdomain auth
 - **WHEN** user logs in on either subdomain
@@ -338,7 +261,7 @@ subdomains.
 
 ### Requirement: Login Flow
 
-The system SHALL handle the complete login lifecycle.
+The system SHALL handle login with redirect preservation.
 
 #### Scenario: Login from protected page
 - **WHEN** unauthenticated user hits protected route
@@ -356,7 +279,7 @@ The system SHALL handle the complete login lifecycle.
 
 ### Requirement: Logout Flow
 
-The system SHALL handle logout across both domains.
+The system SHALL destroy sessions across all subdomains on logout.
 
 #### Scenario: Logout
 - **WHEN** user clicks logout anywhere
@@ -369,8 +292,7 @@ The system SHALL handle logout across both domains.
 
 ### Requirement: Email Flows
 
-The system SHALL handle transactional auth emails via
-Supabase.
+The system SHALL support magic link, password reset, and email change flows.
 
 #### Scenario: Magic link
 - **WHEN** user requests magic link
@@ -388,8 +310,7 @@ Supabase.
 
 ### Requirement: Route Protection
 
-The system SHALL enforce access control on every route
-via middleware.
+The system SHALL enforce route-level access control by role.
 
 #### Scenario: Admin-only route
 - **WHEN** non-admin hits /studio/finance → denied
@@ -400,21 +321,11 @@ via middleware.
 #### Scenario: Public route
 - **WHEN** anyone hits /, /blog/* → allowed
 
-#### Scenario: Org-scoped route
-- **WHEN** user hits /studio/projects
-- **THEN** middleware checks current org context
-- **AND** only shows projects from the active organization
-
-#### Scenario: No org membership
-- **WHEN** authenticated user has no org membership
-- **THEN** they see only their personal org content
-
 ---
 
 ### Requirement: Row-Level Security
 
-The system SHALL use Supabase RLS policies to enforce
-data access at the database level.
+The system SHALL enforce row-level security on every public table.
 
 #### Scenario: Data isolation
 - **WHEN** user queries any table
@@ -424,24 +335,11 @@ data access at the database level.
 - **GIVEN** a middleware bug
 - **THEN** RLS still blocks unauthorized access
 
-#### Scenario: Cross-project isolation test
-- **GIVEN** user A is member of Org X, assigned to Project 1 only
-- **AND** Project 2 also belongs to Org X
-- **WHEN** user A queries Project 2 data
-- **THEN** RLS returns zero rows
-- **AND** this scenario SHALL be covered by automated tests in CI
-
-#### Scenario: Cross-org isolation test
-- **GIVEN** user A is member of Org X and Org Y
-- **WHEN** user A is in Org X context and queries Org Y data
-- **THEN** RLS returns zero rows
-- **AND** this scenario SHALL be covered by automated tests in CI
-
 ---
 
 ### Requirement: Session Expiry
 
-The system SHALL handle expired sessions gracefully.
+The system SHALL handle session expiry gracefully without data loss.
 
 #### Scenario: Active session expires
 - **WHEN** session expires during use
@@ -452,7 +350,7 @@ The system SHALL handle expired sessions gracefully.
 
 ### Requirement: Audit Trail
 
-The system SHALL log all security-relevant events.
+The system SHALL log all authentication and authorization events.
 
 #### Scenario: Security event logging
 - **WHEN** any auth event occurs (login, logout, role change,
@@ -471,9 +369,6 @@ All auth logic lives here. Apps import, never implement.
 - `useRequireAuth(role?)` → redirect if not authorized
 - `useSession()` → { session, refresh, signOut }
 - `useDomainRole()` → { isClient, isNetworkMember, groups }
-- `useOrganization()` → { org, orgRole, switchOrg }
-- `useOrgPermission(permission)` → boolean
-- `useOrganizations()` → [{ org, role }]
 
 **Middleware:**
 - `withAuth(handler)` → check session, inject user + profile
@@ -484,29 +379,16 @@ All auth logic lives here. Apps import, never implement.
 - `getServerSession(cookies)` → session from cookies
 - `getServerUser(cookies)` → user + profile + domain roles
 - `validateSession(token)` → verify + refresh if needed
-- `getServerOrgRole(cookies, orgId)` → org_role
-- `canAccessProject(userId, projectId)` → boolean
 
 **Security:**
 - `validateInput(schema, data)` → zod validation
 - `sanitizeOutput(data, role)` → strip sensitive fields
 - `auditLog(action, userId, detail)` → security event log
 
-**Testing:**
-- `testRLSPolicy(table, userId, expectedRows)` → CI helper
-- `RLS_TEST_MATRIX` → predefined test cases:
-  - anon → 0 rows on all protected tables
-  - user (no org) → 0 rows on org-scoped tables
-  - member → only assigned project rows
-  - admin → all org rows, not other orgs
-  - platform admin → all rows
-
 **Config:**
 - `AUTH_ROUTES` → public / auth-required / admin-only map
 - `COOKIE_DOMAIN` → `.pavelrapoport.com`
 - `REDIRECT_DEFAULTS` → { admin, client, network, user }
-- `ORG_PERMISSIONS` → static map of org_role to allowed actions
-- `hasPermission(orgRole, action)` → boolean check
 
 ### What is NOT in @rapoport/auth
 
@@ -521,16 +403,12 @@ All auth logic lives here. Apps import, never implement.
   locale, role, created_at
 - **Session** — access_token, refresh_token, expires_at
 - **Role** — `admin` or `user` (stored in profiles)
-- **OrganizationMember** — user's membership in an org.
-  Has: id, organization_id, user_id, org_role, joined_at
-- **ProjectAssignment** — user assigned to a project.
-  Has: id, project_id, user_id
 - **AuditEvent** — timestamp, user_id, ip, action, success
 
 ## Dependencies
 
 - All domains depend on `auth`
-- `organizations` — org membership determines access scope
+- `clients` — client profile extends User
 - `network` — network member profile extends User
 - `integrations` — WhatsApp Business API for WhatsApp login
 - `@rapoport/ui` — auth form components

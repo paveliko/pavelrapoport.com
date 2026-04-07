@@ -42,7 +42,7 @@ are members with roles. This covers all cases:
 |----------|-------------|---------|
 | Company orders a project | "Dentour Ltd" | CEO (admin), designer (member) |
 | Partnership | "Pavel + Sergey" | Both as owners |
-| Pavel's own work | "Pavel Rapoport" | Pavel (owner) — auto-created |
+| Pavel's own work | "Pavel Rapoport Studio" | Pavel (owner) — auto-created |
 | Government contract | "Ministry of Health" | Contact person (admin) |
 | Solo client | "John Doe" | John (owner) — personal org |
 
@@ -97,30 +97,10 @@ with role-based access.
 - **AND** member can view and work on assigned projects
 - **AND** viewer can only read shared content
 
-#### Scenario: Viewer data isolation
-- **GIVEN** a user with role `viewer` in an organization
-- **WHEN** they query organization data
-- **THEN** they see only: their assigned projects and members of those projects
-- **AND** they do NOT see: full member list, other projects, org settings, finance
-
 #### Scenario: Removing a member
 - **WHEN** an owner or admin removes a member
 - **THEN** the member loses access to all org projects
 - **AND** their work history is preserved
-
-#### Scenario: Owner removal rules
-- **GIVEN** an organization with multiple owners
-- **WHEN** an owner tries to remove another owner
-- **THEN** a confirmation is required (email or 2FA)
-- **AND** an audit event is logged
-- **AND** the removed owner receives email notification
-- **AND** the system SHALL NOT allow removing the last owner
-
-#### Scenario: Single owner protection
-- **GIVEN** an organization with exactly one owner
-- **WHEN** that owner tries to leave or delete their role
-- **THEN** the system blocks the action
-- **AND** shows: "Transfer ownership before leaving"
 
 #### Scenario: Multiple organizations
 - **GIVEN** a user can belong to multiple organizations
@@ -140,39 +120,6 @@ The system SHALL allow owners to manage organization settings.
 - **AND** manage members and their roles
 - **AND** view billing information (linked to `finance`)
 - **AND** see all projects under this organization
-
----
-
-### Requirement: Owner-Level Notifications
-
-The system SHALL notify all owners when critical changes occur.
-
-#### Scenario: Critical change notification
-- **WHEN** any of the following happens:
-  owner added, owner removed, org deleted,
-  connection created/deleted, member role changed to admin
-- **THEN** ALL owners receive email notification
-- **AND** the event is logged in audit trail
-- **AND** notification includes: who, what, when, IP
-
----
-
-### Requirement: Organization Deletion
-
-The system SHALL enforce safe organization deletion.
-
-#### Scenario: Deleting an organization
-- **WHEN** an owner initiates org deletion
-- **THEN** all owners must confirm (if multiple owners)
-- **AND** the system shows impact: X projects, Y members, Z connections will be affected
-- **AND** a 7-day grace period starts before permanent deletion
-- **AND** during grace period, any owner can cancel deletion
-
-#### Scenario: Org with active projects
-- **GIVEN** an organization has projects with status != "delivered"
-- **WHEN** deletion is initiated
-- **THEN** the system warns: "X active projects will be archived"
-- **AND** requires explicit confirmation
 
 ---
 
@@ -213,12 +160,6 @@ The system SHALL support switching between organizations.
 - **Invitation** — a pending invite to join an org.
   Has: id, organization_id, email, role, invited_by,
   status (pending/accepted/expired), expires_at
-- **FoundersAgreement** — partnership terms (extends Contract).
-  Has: id, organization_id, roles, equity_split,
-  vesting_schedule, decision_rights, exit_terms, signed_at
-- **PartnershipStage** — current lifecycle stage.
-  Has: id, organization_id, stage (0-5), checklist_completion,
-  entered_at, completed_at
 
 ## Dependencies
 

@@ -39,6 +39,7 @@ and structured data.
 #### Scenario: Published article has SEO metadata
 - **WHEN** an article is published
 - **THEN** it includes meta tags, open graph, and structured data
+- **AND** search engines can index the content
 
 ## Entities
 
@@ -50,4 +51,4 @@ and structured data.
 ## Dependencies
 
 - `projects` — case studies reference completed projects
-- `web` — blog content surfaces on the public site
+- `site` — blog content surfaces on the public site

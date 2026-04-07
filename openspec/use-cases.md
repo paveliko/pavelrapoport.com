@@ -40,10 +40,10 @@ Ministry of Health wants to digitize patient records.
 Organization: "Ministry of Health — Digital Records"
   type: government
   Members:
-    Pavel → admin (technical lead)
-    Ministry contact → admin (project owner)
-    Security officer → viewer (audit access)
-    Subcontractors → members (assigned tasks)
+    Pavel — admin (technical lead)
+    Ministry contact — admin (project owner)
+    Security officer — viewer (audit access)
+    Subcontractors — members (assigned tasks)
 
 Project: "Health Records Platform"
   Domain map: Patient, Doctor, Clinic, Appointment,
@@ -104,11 +104,11 @@ for managing patients, clinics, and bookings.
 Organization: "Dentour Ltd"
   type: company
   Members:
-    CEO → owner (sees everything, pays)
-    CTO → admin (manages projects)
-    Pavel → admin (builds)
-    Designer → member (branding, via network)
-    Marketing → viewer (sees progress)
+    CEO — owner (sees everything, pays)
+    CTO — admin (manages projects)
+    Pavel — admin (builds)
+    Designer — member (branding, via network)
+    Marketing — viewer (sees progress)
 
 Project: "Dentour Platform"
   Domain map: Patient, Clinic, Doctor, Booking,
@@ -174,9 +174,9 @@ legacy code and generates migration plans.
 Organization: "Pavel + Sergey"
   type: partnership
   Members:
-    Pavel → owner
-    Sergey → owner
-    AI Agent → assigned tasks (scans code)
+    Pavel — owner
+    Sergey — owner
+    AI Agent — assigned tasks (scans code)
 
 Flow:
   Bar conversation on Friday night

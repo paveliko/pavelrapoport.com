@@ -63,13 +63,7 @@ to an organization.
 - **AND** it belongs to the currently active organization
 - **AND** created_by records who created it
 
-Status lifecycle: draft → shaping → speccing → building → delivered
-
-#### Scenario: Draft project auto-creation
-- **WHEN** AI Listener detects a new idea from any channel
-- **THEN** a draft project is created with extracted entities
-- **AND** specs are marked [DRAFT]
-- **AND** a review task is created for Pavel
+Status lifecycle: shaping → speccing → building → delivered
 
 #### Scenario: Project belongs to organization
 - **GIVEN** a project is created under "Dentour Ltd"
@@ -160,8 +154,7 @@ Each project SHALL track planned vs actual costs.
 
 ### Requirement: Project-Level Permissions
 
-The system SHALL enforce project access based on
-organization membership.
+The system SHALL enforce project access based on organization membership.
 
 #### Scenario: Organization member access
 - **WHEN** an org member opens a project
@@ -185,18 +178,6 @@ organization membership.
   (via `integrations`)
 - **ProjectAssignment** — network member assigned to project.
   Has: project_id, network_member_id, role, brief
-- **Idea** — pre-project concept.
-  Has: id, problem_statement, ai_leverage_score,
-  market_estimate, source_contact_id, created_by, created_at
-- **DecisionLog** — key decision record.
-  Has: id, project_id, organization_id, date, decision,
-  context, decided_by, outcome, linked_to_type, linked_to_id
-- **Milestone** — trackable checkpoint per stage.
-  Has: id, project_id, title, stage, due_at,
-  completed_at, status
-- **PilotClient** — pilot customer for validation.
-  Has: id, project_id, name, criteria, feedback,
-  outcome (success/fail/pivot), started_at, completed_at
 
 ## Dependencies
 

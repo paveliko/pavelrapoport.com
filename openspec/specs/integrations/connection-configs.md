@@ -49,7 +49,6 @@
   - `production_branch` (text) — default `main`
 - **Validate:** GET /client/v4/accounts/{account_id}
 - **Scope:** project or global
-- **Also used by:** `domains` — DNS management, subdomain creation, SSL provisioning
 
 ### Supabase
 - **Auth:** Service role key + project URL
@@ -111,33 +110,6 @@
   - `from_name` (text) — sender display name
   - `reply_to` (email) — reply-to address (optional)
 - **Validate:** GET /api/domains
-- **Scope:** global
-
-### Railway
-- **Auth:** API token
-- **Fields:**
-  - `api_token` (secret) — Railway API token
-  - `project_id` (text) — Railway project ID
-- **Validate:** GET railway API health
-- **Scope:** project
-
-### Infisical
-- **Auth:** Service token
-- **Fields:**
-  - `token` (secret) — Infisical service token
-  - `project_id` (text) — Infisical project ID
-  - `environment` (select) — dev, staging, production
-- **Validate:** GET /api/v3/secrets
-- **Scope:** project
-
-### Google Workspace
-- **Auth:** OAuth 2.0
-- **Fields:**
-  - `account_email` (email) — Google Workspace account
-  - `oauth_token` (secret) — OAuth access token
-  - `refresh_token` (secret) — for token renewal
-  - `enabled_services` (text[]) — gmail, calendar, drive, contacts
-- **Validate:** GET https://www.googleapis.com/oauth2/v1/userinfo
 - **Scope:** global
 
 ---
@@ -216,14 +188,64 @@
 - **Validate:** test search query
 - **Scope:** global
 
-### Google Drive / Notion
-- **Auth:** OAuth
+### Google Workspace
+- **Auth:** OAuth 2.0 (single consent → multiple scopes)
+- **Account:** hello@pavelrapoport.com
+- **Services:**
+
+**Gmail**
 - **Fields:**
-  - `provider` (select) — google_drive, notion
   - `access_token` (secret) — OAuth token
   - `refresh_token` (secret) — for token renewal
-  - `root_folder_id` (text) — Google Drive folder or Notion workspace
-- **Validate:** list files/pages
+- **Scopes:** gmail.readonly, gmail.send
+- **Use:** incoming lead detection, AI Listener classification
+- **Scope:** global
+- **Note:** transactional/marketing emails → Resend, NOT Gmail
+
+**Google Calendar**
+- **Fields:**
+  - `calendar_id` (text) — primary or specific calendar
+- **Scopes:** calendar.events, calendar.readonly
+- **Use:** discovery call booking, deadline sync with Linear,
+  meeting recordings → AI Listener
+- **Scope:** global
+
+**Google Drive**
+- **Fields:**
+  - `root_folder_id` (text) — root folder for projects
+- **Scopes:** drive.file, drive.readonly
+- **Use:** client documents (NDA, contracts, briefs),
+  mood boards, references. Auto-create folder per project.
+- **Scope:** project (folder per project) + global (root)
+
+**Google Meet**
+- **Fields:** (via Calendar API — no separate config)
+- **Use:** recording → transcript → AI Listener → entities
+- **Scope:** global
+
+**Google Search Console**
+- **Fields:**
+  - `site_url` (text) — https://pavelrapoport.com
+- **Scopes:** webmasters.readonly
+- **Use:** SEO monitoring, indexation tracking
+- **Scope:** global
+
+**Google Sheets** (optional)
+- **Fields:**
+  - `spreadsheet_id` (text) — per export
+- **Scopes:** spreadsheets
+- **Use:** financial reports exported for client sharing
+- **Scope:** project
+
+- **Validate:** OAuth consent → list calendars + list files
+- **Single OAuth flow:** one consent screen, multiple scopes
+
+### Notion
+- **Auth:** OAuth
+- **Fields:**
+  - `access_token` (secret) — OAuth token
+  - `workspace_id` (text) — Notion workspace
+- **Validate:** list pages
 - **Scope:** project or global
 
 ### Stripe
@@ -242,13 +264,13 @@
 
 | Field Type | Count | Examples |
 |-----------|-------|---------|
-| secret | 39 | API keys, tokens, DSNs |
-| text | 24 | slugs, IDs, names |
+| secret | 35 | API keys, tokens, DSNs |
+| text | 22 | slugs, IDs, names |
 | url | 5 | endpoints, webhooks |
-| select | 9 | providers, models, modes, environments |
-| email | 3 | from/reply-to, account |
+| select | 8 | providers, models, modes |
+| email | 2 | from/reply-to |
 | number | 2 | max_tokens, dimensions |
 | boolean | 1 | enabled flag |
-| text[] | 3 | chat_ids, allowed_commands, enabled_services |
+| text[] | 2 | chat_ids, allowed_commands |
 
-Total: 86 fields across 24 integrations.
+Total: 77 fields across 21 integrations.

@@ -29,13 +29,13 @@ Integration secrets (per organization)
         ├── creates and edits connections
         ├── reviews audit log of key access
         ├── rotates keys on schedule
-        ├── receives alerts on compromise
-        │
-        └── Organization admin
-              ├── can view keys (audit logged)
-              ├── can create connections
-              ├── CANNOT delete connections
-              └── owner notified on every access
+        └── receives alerts on compromise
+              │
+              └── Organization admin
+                    ├── can view keys (audit logged)
+                    ├── can create connections
+                    ├── CANNOT delete connections
+                    └── owner notified on every access
 
 Members and viewers: NEVER see keys.
 System uses keys on their behalf.

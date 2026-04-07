@@ -41,7 +41,7 @@ Pavel orchestrates creative teams around each project —
 photographers, 3D artists, brand designers — everyone does
 what they do best, Pavel connects it into a product.
 
-This site is the ecosystem: projects, clients, network members,
+This site is the ecosystem: projects, clients, contractors,
 and an AI agent — all in one place. Everything that can be
 automated, will be. Everything that can be delegated to AI,
 will be delegated.
@@ -98,48 +98,48 @@ apps/
       finance/
 
 packages/
-  @rapoport/ui            → design system (shadcn/ui components)
-  @rapoport/db            → Supabase client, types, migrations
-  @rapoport/ai            → agent logic, prompts, mode switching
-  @rapoport/auth          → authentication, roles, permissions
-  @rapoport/config        → connection configs, secrets management
-  @rapoport/domain-map    → interactive entity graph (React Flow)
+  @repo/ui            → design system (shadcn/ui components)
+  @repo/db            → Supabase client, types, migrations
+  @repo/ai            → agent logic, prompts, mode switching
+  @repo/auth          → authentication, roles, permissions
+  @repo/config        → connection configs, secrets management
+  @repo/domain-map    → interactive entity graph (React Flow)
                         standalone-extractable
 ```
 
-### @rapoport/ui
+### @repo/ui
 
 Built on shadcn/ui. All components live here, never in apps.
 Both web and studio consume from the same library.
 
-### @rapoport/db
+### @repo/db
 
 Supabase client, generated types, RLS policies, migrations.
 Single source of truth for all database access.
 
-### @rapoport/ai
+### @repo/ai
 
 Agent core: mode definitions (Canvas, Scout, Architect, Builder),
 system prompts, structured output schemas, model selection,
 token tracking. Consumed by both apps and by CLI tools.
 
-### @rapoport/auth
+### @repo/auth
 
 Supabase Auth wrapper, role definitions (owner, client, network,
 public), permission checks, middleware. Shared across apps.
 
-### @rapoport/config
+### @repo/config
 
 Connection management layer for all 21 integrations:
-- `getConnection(type, projectId?)` — config + status
-- `setConnection(type, projectId?, fields)` — encrypted store
-- `validateConnection(type, config)` — ok | error
-- `listConnections(projectId?)` — all active connections
+- `getConnection(type, projectId?)` → config + status
+- `setConnection(type, projectId?, fields)` → encrypted store
+- `validateConnection(type, config)` → ok | error
+- `listConnections(projectId?)` → all active connections
 
 Secrets stored in Supabase (encrypted) or Cloudflare secrets.
 Package abstracts the source — app doesn't care where keys live.
 
-### @rapoport/domain-map
+### @repo/domain-map
 
 React Flow-based entity graph visualizer. Renders domain maps
 from OpenSpec data. Designed for standalone extraction as
@@ -188,7 +188,7 @@ banks, government. If it can be automated, it will be.
 
 ## Domains
 
-### `web`
+### `site`
 
 **What:** Public face of pavelrapoport.com — the first thing
 anyone sees.
@@ -305,83 +305,17 @@ code writing. One agent, multiple modes.
 
 ---
 
-### `integrations`
-
-**What:** Platform-level integration layer. Two concepts:
-Integration (driver — "we can talk to Linear") and Connection
-(instance — "project X is connected to workspace Y").
-
-**For whom:** Pavel (configures), the system (syncs data),
-eventually clients and network members (connect their tools).
-
-**Why it exists:** The studio orchestrates 21 external services.
-Each needs auth, config, status, and a shared interface.
-Without this, every domain reinvents how to talk outside.
-
-**What's inside:**
-- Integration registry — 21 supported types in 7 categories
-- Connections — global (platform) or project-scoped instances
-- Unified interface — connect(), disconnect(), status(), sync()
-- Config management — encrypted credentials, health checks
-- Sync events — audit log of all data exchange
-
----
-
-### `domains`
-
-**What:** DNS domain management — registration, subdomains,
-SSL, email configuration.
-
-**For whom:** Organization owners (manage their domains),
-admins (configure subdomains and email).
-
-**Why it exists:** A domain is more than a URL. It has DNS,
-SSL, email, subdomain routing, expiry tracking. Organizations
-own domains, projects use subdomains. Cloudflare is the central
-DNS manager.
-
-**What's inside:**
-- Domain registration and verification
-- Subdomain → project mapping
-- Email config (SPF, DKIM, DMARC)
-- SSL (automatic via Cloudflare)
-- Expiry tracking and alerts
-- DNS audit trail
-
----
-
-### `tasks`
-
-**What:** Universal work units. Assigned to anyone — people or AI.
-
-**For whom:** Pavel (manages), network members (execute),
-AI agent (creates and executes), clients (see their task status).
-
-**Why it exists:** Everything produces work. Email → task.
-Spec approved → task. Deadline → task. Tasks are polymorphic —
-assigned to any user or AI agent, linked to any entity in
-the system.
-
-**What's inside:**
-- Polymorphic assignment — user or AI agent
-- Polymorphic linking — project, client, org, domain, connection
-- Sources — manual, AI, email, calendar, Linear, webhook, system
-- Task board — my tasks, project tasks, AI queue
-- Priority and status lifecycle
-
----
-
 ### `auth`
 
 **What:** Authentication and authorization across the
 entire ecosystem.
 
-**For whom:** Everyone — Pavel, clients, network members.
+**For whom:** Everyone — Pavel, clients, contractors.
 Each sees only what they should see.
 
 **Why it exists:** The ecosystem has multiple roles with
 different access levels. Studio is Pavel-only today, but
-tomorrow clients see their project status and network members
+tomorrow clients see their project status and contractors
 see their briefs. Auth grows with the platform.
 
 **What's inside:**
@@ -399,11 +333,11 @@ see their briefs. Auth grows with the platform.
 Pavel does lives here.
 
 **For whom:** Pavel (manages), clients (their product),
-network members (their assignments), AI (executes within
+contractors (their assignments), AI (executes within
 project scope).
 
 **Why it exists:** A project is where all domains meet.
-It has a client, network members, specs, a domain map, a
+It has a client, contractors, specs, a domain map, a
 pipeline, a budget. It's the central node of the
 ecosystem.
 
@@ -412,7 +346,7 @@ ecosystem.
 - Domain map — interactive entity graph (OpenSpec visualized)
 - Specs — generated from entities, versioned
 - Pipeline — changes board, proposal → ship flow
-- Team — which network members are assigned
+- Team — which contractors are assigned
 - Budget — planned vs actual, linked to `finance`
 - Settings — GitHub repo, Linear team, AI config
 
@@ -446,7 +380,7 @@ What Pavel did → Result with a number.
 as the entry point, human conversations underneath.
 
 **For whom:** Clients (talk to the AI bot first, then to
-Pavel), network members (receive briefs, ask questions), Pavel
+Pavel), contractors (receive briefs, ask questions), Pavel
 (sees everything in one place).
 
 **Why it exists:** The AI bot is the front door. A client
@@ -458,7 +392,7 @@ Then human communication flows through the same channel.
 - AI chat — open-source chat UI, client-facing
 - Bot logic — qualification, FAQ, entity creation,
   handoff to Pavel
-- Conversations — Pavel ↔ client, Pavel ↔ network member
+- Conversations — Pavel ↔ client, Pavel ↔ contractor
 - Notifications — new message, new lead, task update
 - Chat history — searchable, linked to projects
 - Future: Telegram/WhatsApp integration
@@ -474,12 +408,12 @@ accountant, tax reporting.
 
 **Why it exists:** Pavel needs to know if he's making
 money. Per project, per client, per month. How much AI
-costs, how much network members cost, what's the margin.
+costs, how much contractors cost, what's the margin.
 No spreadsheets — it's in the system.
 
 **What's inside:**
 - Revenue — invoices to clients, payment status
-- Expenses — network member payments, AI token costs,
+- Expenses — contractor payments, AI token costs,
   infrastructure, tools
 - Per-project P&L — revenue minus all costs
 - Planning — monthly/quarterly financial goals
