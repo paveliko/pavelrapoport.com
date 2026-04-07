@@ -1824,6 +1824,351 @@ composition with:
 The goal: every screen feels curated, not generated.
 Pavel is a director, not a template filler.
 
+### Animation & Rendering Framework
+
+**Three rendering layers, one animation engine.**
+
+```
+Layer          Technology              Use Case
+───────────────────────────────────────────────────────────
+HTML/DOM       Motion + Tailwind       Entity views, forms, studio UI,
+                                       layout transitions, gestures
+SVG            React Flow + Motion SVG Domain map, diagrams, visual
+                                       compositions, edge animations
+Canvas         Future (if needed)      100+ nodes at low zoom,
+                                       heatmaps, particle effects
+```
+
+#### Primary: Motion (formerly Framer Motion)
+
+```
+Package:     motion (import from "motion/react")
+Version:     v12+ (rebranded from framer-motion in late 2024)
+Bundle:      ~50KB full, ~15KB with LazyMotion
+Downloads:   30M+/month
+Used by:     Figma, Framer, Stripe, Notion
+
+Why Motion:
+  ✅ Declarative API — animation logic lives in JSX, not useEffect
+  ✅ layoutId — shared element transitions (entity view morphing)
+  ✅ AnimatePresence — animate components entering/exiting DOM
+  ✅ Layout animations — animate CSS Grid, flexbox changes
+  ✅ SVG support — animate SVG paths, viewBox, transforms
+  ✅ Gestures — drag, hover, tap, pan built-in
+  ✅ Scroll — useScroll + useTransform for scroll-driven motion
+  ✅ Spring physics — natural-feeling transitions by default
+  ✅ GPU-accelerated — Web Animations API under the hood
+  ✅ useReducedMotion — accessibility built-in
+  ✅ LazyMotion — tree-shake unused features
+
+Why NOT GSAP:
+  ❌ Not React-native — requires refs, useEffect, manual cleanup
+  ❌ Imperative API — fights React's declarative model
+  ❌ License issues at scale (paid for some features)
+  Motion covers 100% of our use cases. GSAP adds complexity.
+
+Why NOT React Spring:
+  ❌ Weaker layout animations (no layoutId equivalent)
+  ❌ No AnimatePresence (exit animations complex)
+  Motion has better DX for our entity view transitions.
+```
+
+#### Entity View Transitions with Motion
+
+**The core pattern: `layoutId` makes entities morph between views.**
+
+```typescript
+// Entity renders differently based on current view,
+// but Motion makes the transition between views smooth.
+
+import { motion, AnimatePresence } from 'motion/react';
+
+// Variants for each entity view type
+const viewVariants = {
+  inline: {
+    width: 'auto',
+    height: 32,
+    padding: '4px 8px',
+  },
+  option: {
+    width: 280,
+    height: 48,
+    padding: '8px 12px',
+  },
+  row: {
+    width: '100%',
+    height: 64,
+    padding: '12px 16px',
+  },
+  card: {
+    width: 320,
+    height: 240,
+    padding: '16px',
+  },
+  detail: {
+    width: '100%',
+    height: 'auto',
+    padding: '24px',
+  },
+};
+
+type EntityViewType = 'inline' | 'option' | 'row' | 'card' | 'detail';
+
+interface EntityViewProps {
+  entity: Entity;
+  view: EntityViewType;
+}
+
+function EntityView({ entity, view }: EntityViewProps) {
+  return (
+    <motion.div
+      layoutId={`entity-${entity.id}`}        // ← same ID = morphing
+      variants={viewVariants}
+      animate={view}
+      transition={{
+        type: 'spring',
+        stiffness: 400,
+        damping: 30,
+      }}
+      style={{
+        '--entity-primary': entity.visual_identity?.palette?.primary,
+        '--entity-accent': entity.visual_identity?.palette?.accent,
+      } as React.CSSProperties}
+    >
+      <AnimatePresence mode="wait">
+        {view === 'inline' && <EntityInline key="inline" entity={entity} />}
+        {view === 'option' && <EntityOption key="option" entity={entity} />}
+        {view === 'row' && <EntityRow key="row" entity={entity} />}
+        {view === 'card' && <EntityCard key="card" entity={entity} />}
+        {view === 'detail' && <EntityDetail key="detail" entity={entity} />}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// Each sub-view animates its own content on enter/exit:
+function EntityCard({ entity }: { entity: Entity }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.h3 layoutId={`entity-name-${entity.id}`}>
+        {entity.label}
+      </motion.h3>
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        {entity.description}
+      </motion.p>
+      {/* Card-specific visual elements */}
+    </motion.div>
+  );
+}
+```
+
+**Key insight: `layoutId` on the entity name means when you go
+from Card → Detail, the title literally floats to its new position.
+Not a fade — a spatial transition.**
+
+#### Domain Map: React Flow + Motion
+
+```
+React Flow (@xyflow/react) handles:
+  ✅ Node positioning, panning, zooming (d3-zoom)
+  ✅ Edge rendering (SVG paths: bezier, step, smooth)
+  ✅ Custom nodes (React components — can contain Motion)
+  ✅ Minimap, controls, background grid
+  ✅ Drag-to-connect, selection, keyboard shortcuts
+
+Motion handles inside React Flow nodes:
+  ✅ Node appear animation (entity fades in during Canvas chat)
+  ✅ Node state transitions (idle → selected → editing)
+  ✅ Edge animations (SVG animateMotion along path)
+  ✅ Relationship labels (appear on hover)
+```
+
+```typescript
+// Custom React Flow node with Motion animations
+import { Handle, Position, type NodeProps } from '@xyflow/react';
+import { motion } from 'motion/react';
+
+function EntityNode({ data, selected }: NodeProps) {
+  return (
+    <motion.div
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{
+        scale: 1,
+        opacity: 1,
+        boxShadow: selected
+          ? '0 0 0 2px var(--entity-primary)'
+          : '0 1px 3px rgba(0,0,0,0.1)',
+      }}
+      whileHover={{ scale: 1.05 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+      className="rounded-xl bg-white p-4"
+      style={{
+        '--entity-primary': data.palette?.primary,
+      } as React.CSSProperties}
+    >
+      <Handle type="target" position={Position.Top} />
+      <div className="text-sm font-medium">{data.label}</div>
+      <div className="text-xs text-gray-500">{data.category}</div>
+      <Handle type="source" position={Position.Bottom} />
+    </motion.div>
+  );
+}
+```
+
+#### Canvas Rendering (Future — not MVP)
+
+```
+When to switch from React Flow (DOM/SVG) to Canvas:
+  - 100+ visible nodes at same time (performance degrades)
+  - Particle effects, heatmaps, complex visualizations
+  - Zoom-out overview of large domain maps
+
+Strategy (from xyflow discussion):
+  At high zoom (few nodes visible): React Flow (DOM) — full interactivity
+  At low zoom (many nodes visible): Canvas renderer — fast painting
+  Hybrid: React Flow handles interaction, Canvas handles rendering
+
+Libraries if needed:
+  Pixi.js (2D Canvas, WebGL fallback) — best performance
+  react-konva (React bindings for Canvas) — simpler API
+  @react-three/fiber — only if 3D, heavy dependency
+
+Decision: DEFER Canvas rendering to post-MVP.
+React Flow handles up to ~50 nodes well. Our domain maps
+are max 15 entities (spec limit). No Canvas needed now.
+```
+
+#### Tailwind CSS Animations
+
+```
+Tailwind for simple, CSS-only animations:
+  animate-pulse      → skeleton loading
+  animate-spin       → spinner icon
+  animate-bounce     → attention indicator
+  animate-ping       → notification dot
+  transition-all     → hover/focus state changes
+  duration-200       → fast micro-interactions
+
+Custom Tailwind animations (tailwind.config):
+  animate-fade-in    → opacity 0 → 1 (300ms)
+  animate-slide-up   → translateY(10px) → 0 (200ms)
+  animate-scale-in   → scale(0.95) → 1 (150ms)
+
+When to use Tailwind vs Motion:
+  Tailwind: hover effects, focus states, simple transitions,
+            skeleton loading, spinner — anything CSS can do
+  Motion:   layout changes, shared elements, enter/exit,
+            gestures, scroll-driven, spring physics —
+            anything that needs React lifecycle awareness
+```
+
+#### Animation Tokens (consistency)
+
+```typescript
+// packages/shared/src/config/animation-tokens.ts
+
+export const ANIMATION = {
+  // Spring presets
+  spring: {
+    snappy:  { type: 'spring', stiffness: 500, damping: 30 },
+    gentle:  { type: 'spring', stiffness: 200, damping: 20 },
+    bouncy:  { type: 'spring', stiffness: 300, damping: 10 },
+  },
+
+  // Tween presets
+  tween: {
+    fast:    { type: 'tween', duration: 0.15, ease: 'easeOut' },
+    normal:  { type: 'tween', duration: 0.3, ease: 'easeInOut' },
+    slow:    { type: 'tween', duration: 0.5, ease: 'easeInOut' },
+  },
+
+  // Entity view transitions
+  viewTransition: {
+    type: 'spring',
+    stiffness: 400,
+    damping: 30,
+  },
+
+  // Canvas node appear
+  nodeAppear: {
+    type: 'spring',
+    stiffness: 500,
+    damping: 25,
+    delay: 0.1,  // stagger per node
+  },
+} as const;
+
+// Usage:
+<motion.div transition={ANIMATION.spring.snappy} />
+<motion.div transition={ANIMATION.viewTransition} />
+```
+
+#### LazyMotion (bundle optimization)
+
+```typescript
+// Only load Motion features you actually use.
+// Full Motion: ~50KB. With LazyMotion: ~15KB.
+
+// app/layout.tsx (root layout)
+import { LazyMotion, domAnimation } from 'motion/react';
+
+export default function RootLayout({ children }) {
+  return (
+    <LazyMotion features={domAnimation} strict>
+      {children}
+    </LazyMotion>
+  );
+}
+
+// For pages that need advanced features (drag, layout):
+import { LazyMotion, domMax } from 'motion/react';
+
+// domAnimation: ~15KB — animate, exit, variants, hover, tap
+// domMax: ~30KB — adds layout, drag, AnimatePresence
+
+// Rule: public site uses domAnimation (lightweight)
+//       Studio uses domMax (needs layout + drag)
+```
+
+#### Accessibility: Reduced Motion
+
+```typescript
+// Motion respects prefers-reduced-motion automatically.
+// But we also handle it explicitly:
+
+import { useReducedMotion } from 'motion/react';
+
+function EntityView({ entity, view }: EntityViewProps) {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      layoutId={`entity-${entity.id}`}
+      animate={view}
+      transition={
+        shouldReduceMotion
+          ? { duration: 0 }              // instant, no animation
+          : ANIMATION.viewTransition     // spring physics
+      }
+    >
+      {/* ... */}
+    </motion.div>
+  );
+}
+
+// Rule: every animated component respects useReducedMotion.
+// Test: enable "Reduce motion" in OS → verify all transitions
+//       are instant or fade-only (no spatial movement).
+```
+
 ---
 
 ## Brand DNA System
@@ -1975,25 +2320,1564 @@ One source of truth for how a product looks, feels, and speaks.
 
 ---
 
-## Styling
+## Design System — @rapoport/ui
+
+### Storybook as the Design Tool
+
+**Storybook replaces Figma. We don't design in Figma.**
+
+```
+ui.pavelrapoport.com          → Storybook (public, always deployed)
+                                 Clients see components here.
+                                 Pavel reviews visual states here.
+                                 AI reads component specs from here.
+
+Figma:
+  ❌ Not for design (we design in code)
+  ❌ Not for wireframes (we wireframe in Storybook)
+  ✅ Only for importing: MCP reads Figma files from clients
+     who already use it. We extract data, not design in it.
+```
+
+**Why Storybook over Figma:**
+- Components are **real** — not drawings of components
+- Client sees actual behavior, not static mockups
+- Every component has interactive controls (args/knobs)
+- Entity View transitions visible in browser
+- Same code ships to production — zero translation gap
+- AI can read component specs and stories
+
+**Storybook deploy:**
+```
+Monorepo: packages/ui/.storybook/
+Deployed: Cloudflare Pages → ui.pavelrapoport.com
+Trigger: any change to packages/ui/ → auto-deploy
+```
+
+### Component Foundation: shadcn/ui
+
+**shadcn/ui is not a dependency. It's a code generator.**
+
+```
+What shadcn/ui gives us:
+  npx shadcn@latest add button → copies Button.tsx into packages/ui/
+  We OWN the code. No node_modules dependency.
+  Full control to customize for our brand.
+
+What's inside each shadcn component:
+  Radix UI      → headless a11y primitives (WAI-ARIA correct)
+  Tailwind CSS  → styling via utility classes
+  cva           → class-variance-authority (variants without CSS-in-JS)
+  TypeScript    → full types
+```
+
+**How shadcn maps to our taxonomy:**
+
+```
+shadcn provides       → Our level    Examples
+──────────────────────────────────────────────────
+Primitive components  → Elements     Button, Input, Badge, Avatar,
+                                     Toggle, Select, Checkbox
+Compound components   → Blocks       Dialog, Table, Form, Tabs,
+                                     Command (Cmd+K), Sheet (panel),
+                                     Popover, Tooltip, DropdownMenu
+Layout utilities      → Foundation   Separator, ScrollArea,
+                                     AspectRatio, Collapsible
+
+What shadcn does NOT provide (we build):
+  Entity Views  → EntityCard, EntityRow, EntityDetail
+  Screens       → Dashboard, Inbox, ProjectWorkspace
+  Motion        → layoutId wrappers, transition templates
+  Brand DNA     → CSS variable injection from entity data
+```
+
+**shadcn setup in monorepo:**
+
+```json
+// packages/ui/components.json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "tailwind": {
+    "config": "../../tailwind.config.ts",
+    "css": "./src/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "@rapoport/ui/components",
+    "utils": "@rapoport/ui/lib/utils"
+  }
+}
+```
+
+**Component map — shadcn components we use:**
+
+```
+ELEMENTS (install on day 1):
+  button          → primary actions, CTA
+  input           → text fields
+  textarea        → multiline input
+  select          → dropdowns
+  checkbox        → boolean toggles
+  badge           → status indicators
+  avatar          → user/org images
+  toggle          → on/off switches
+  label           → form labels
+  separator       → visual dividers
+  skeleton        → loading states
+
+BLOCKS (install as needed):
+  dialog          → modals, confirmations
+  sheet           → side panels (entity detail)
+  table           → data tables (entity rows)
+  form            → react-hook-form integration
+  tabs            → project tabs (domain/creative/specs/pipeline)
+  command         → Cmd+K palette
+  popover         → inline menus
+  tooltip         → hover hints
+  dropdown-menu   → action menus
+  scroll-area     → scrollable containers
+  collapsible     → expandable sections
+  card            → generic card wrapper
+  alert           → notifications, warnings
+  toast / sonner  → transient notifications
+```
+
+**Customization rule:**
+
+```
+shadcn component → copy to packages/ui/ → customize → re-export
+
+packages/ui/
+  src/
+    elements/          ← shadcn primitives (customized)
+      button.tsx       ← shadcn + our brand variants
+      input.tsx
+      badge.tsx
+    blocks/            ← shadcn compounds (customized)
+      dialog.tsx
+      sheet.tsx
+      table.tsx
+      command.tsx
+    entity-views/      ← OUR components (use elements + blocks)
+      entity-view.tsx  ← resolver + layoutId wrapper
+      entity-inline.tsx
+      entity-option.tsx
+      entity-row.tsx
+      entity-card.tsx
+      entity-detail.tsx
+    lib/
+      utils.ts         ← cn() helper (clsx + tailwind-merge)
+      animation-tokens.ts
+      sync-strategy.ts
+```
+
+### Entity View Registry (Database-Stored)
+
+**Entity view configurations live in Supabase, not in code.**
+
+The code provides the **templates** (how to render each view type).
+The database provides the **configuration** (what to show, how it
+looks, how it moves — per entity, per project).
+
+```sql
+create table entity_view_configs (
+  id uuid primary key default gen_random_uuid(),
+  -- scope
+  entity_key text not null,          -- 'project', 'client', 'task'
+  project_id uuid references projects(id),  -- null = global default
+  -- tier
+  tier text not null default 'utility',  -- 'rich' | 'utility'
+  -- views enabled
+  views_enabled text[] not null default '{row,detail}',
+  -- per-view configuration
+  view_configs jsonb not null default '{}',
+  -- transitions
+  transition_preset text default 'snappy',  -- 'snappy' | 'gentle' | 'bouncy'
+  -- metadata
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  unique(entity_key, project_id)
+);
+```
+
+**view_configs JSONB structure:**
+
+```jsonc
+{
+  "inline": {
+    "fields": ["label"],
+    "prefix_icon": "folder-kanban"
+  },
+  "option": {
+    "fields": ["label", "status"],
+    "icon_field": "category",
+    "subtitle_field": "client_name"
+  },
+  "row": {
+    "fields": ["label", "status", "entity_count", "updated_at"],
+    "sortable_fields": ["label", "status", "updated_at"],
+    "actions": ["open", "archive"]
+  },
+  "card": {
+    "fields": ["label", "status", "entity_count", "domain_graph_thumbnail"],
+    "show_visual_identity": true,
+    "aspect_ratio": "4:3"
+  },
+  "detail": {
+    "tabs": ["domain", "creative", "specs", "pipeline"],
+    "header_fields": ["label", "status", "client_name"],
+    "sidebar_fields": ["created_at", "github_repo", "linear_team_id"]
+  }
+}
+```
+
+**Why in the database:**
+
+```
+Without DB config:
+  New entity → write 5 new component files → deploy
+  Change field order → edit code → deploy
+  Client wants different card layout → code change
+
+With DB config:
+  New entity → INSERT into entity_view_configs → done
+  Change field order → UPDATE view_configs JSON → instant
+  Client wants different layout → Pavel edits in Studio → no deploy
+  
+  Muse can suggest view configs during Canvas session.
+  Pavel adjusts in Studio without touching code.
+```
+
+### Base Transition Template
+
+**The outer wrapper is the SAME for every entity.
+Only the inner content changes.**
+
+```typescript
+// packages/ui/src/entity-views/entity-view.tsx
+// This is THE template. One component. Every entity uses it.
+
+import { motion, AnimatePresence } from 'motion/react';
+import { ANIMATION } from '../lib/animation-tokens';
+import { useEntityViewConfig } from '@rapoport/db';
+
+type ViewType = 'inline' | 'option' | 'row' | 'card' | 'detail';
+
+// Registry of view components per entity
+const VIEW_REGISTRY: Record<string, Record<ViewType, React.ComponentType<any>>> = {
+  project: {
+    inline: ProjectInline,
+    option: ProjectOption,
+    row: ProjectRow,
+    card: ProjectCard,
+    detail: ProjectDetail,
+  },
+  client: {
+    inline: ClientInline,
+    row: ClientRow,
+    card: ClientCard,
+    detail: ClientDetail,
+    // option not registered → falls back to GenericOption
+  },
+  task: {
+    row: TaskRow,
+    detail: TaskDetail,
+    // only 2 views → utility entity
+  },
+};
+
+// Fallback generic views for unlisted view types
+const GENERIC_VIEWS: Record<ViewType, React.ComponentType<any>> = {
+  inline: GenericInline,
+  option: GenericOption,
+  row: GenericRow,
+  card: GenericCard,
+  detail: GenericDetail,
+};
+
+interface EntityViewProps {
+  entity: any;
+  entityType: string;      // 'project', 'client', 'task'
+  view: ViewType;
+  projectId?: string;      // for project-specific config override
+}
+
+export function EntityView({ entity, entityType, view, projectId }: EntityViewProps) {
+  // 1. Read view config from DB (cached via useSyncedQuery)
+  const config = useEntityViewConfig(entityType, projectId);
+
+  // 2. Check if this view is enabled for this entity
+  if (!config.views_enabled.includes(view)) return null;
+
+  // 3. Pick the right component (registered or generic fallback)
+  const ViewComponent =
+    VIEW_REGISTRY[entityType]?.[view] ?? GENERIC_VIEWS[view];
+
+  // 4. Read transition preset from config
+  const transition = ANIMATION.spring[config.transition_preset] 
+    ?? ANIMATION.spring.snappy;
+
+  // 5. THE TEMPLATE — same wrapper, different content
+  return (
+    <motion.div
+      layoutId={`entity-${entity.id}`}
+      layout
+      transition={transition}
+      style={{
+        '--entity-primary': entity.visual_identity?.palette?.primary,
+        '--entity-accent': entity.visual_identity?.palette?.accent,
+      } as React.CSSProperties}
+      className="entity-view"
+    >
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={view}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={ANIMATION.tween.fast}
+        >
+          <ViewComponent
+            entity={entity}
+            config={config.view_configs[view]}
+          />
+        </motion.div>
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+```
+
+**What stays the same (the template):**
+- `layoutId` wrapper (morph between views)
+- CSS variables from entity.visual_identity
+- `AnimatePresence` for enter/exit
+- Transition preset from DB config
+- Entity scoping (per project or global)
+
+**What changes (the content):**
+- Which fields are shown (from `view_configs` in DB)
+- Which component renders (from `VIEW_REGISTRY`)
+- How many views exist (from `views_enabled` in DB)
+- Animation preset (from `transition_preset` in DB)
+
+**Adding a new entity = zero new template code:**
+
+```
+1. INSERT into entity_view_configs:
+   entity_key: 'invoice'
+   tier: 'utility'
+   views_enabled: ['row', 'detail']
+   view_configs: { row: { fields: [...] }, detail: { tabs: [...] } }
+
+2. Register specific components (if needed):
+   VIEW_REGISTRY.invoice = { row: InvoiceRow, detail: InvoiceDetail }
+   
+   OR skip this step → generic views render automatically
+   from the view_configs in DB.
+
+3. Done. No template changes. No new wrappers.
+```
+
+### Generic Views (auto-generated from config)
+
+**For utility entities, you don't even write view components.**
+Generic views read `view_configs` from DB and render automatically.
+
+```typescript
+// packages/ui/src/entity-views/generic-row.tsx
+
+function GenericRow({ entity, config }: { entity: any; config: RowConfig }) {
+  return (
+    <div className="flex items-center gap-4 px-4 py-3 w-full">
+      {config.fields.map(field => (
+        <EntityField
+          key={field}
+          value={entity[field]}
+          field={field}
+          entityType={entity._type}
+        />
+      ))}
+      {config.actions && (
+        <div className="ml-auto flex gap-2">
+          {config.actions.map(action => (
+            <EntityAction key={action} action={action} entity={entity} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// EntityField knows how to render each field type:
+//   'status'     → Badge with color
+//   'created_at' → relative time ("2 days ago")
+//   'label'      → text, bold
+//   'avatar_url' → Avatar component
+//   Anything else → plain text
+```
+
+**The result:**
+
+```
+Rich entities (Project, Client):
+  Custom view components (hand-crafted in code)
+  + DB config for field order, tabs, actions
+  + Brand DNA from visual_identity
+
+Utility entities (Task, Invoice):
+  Generic view components (auto-render from DB config)
+  + DB config for field order, actions
+  + Category default palette
+
+Both wrapped in the SAME transition template.
+Both stored in the SAME entity_view_configs table.
+Both managed in Studio UI.
+```
+
+### Data Flow Architecture
+
+**How data travels from database to pixel — the full pipeline.**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 1. SUPABASE (source of truth)                           │
+│    Raw tables: entities, projects, clients, invoices     │
+│    RLS enforces who sees what                            │
+│    Realtime broadcasts changes                           │
+└──────────────────────┬──────────────────────────────────┘
+                       │ SQL query (with JOINs, aggregates)
+                       ▼
+┌─────────────────────────────────────────────────────────┐
+│ 2. API SERVICE (NestJS on Railway)                      │
+│    Controller validates request                          │
+│    Service runs query → gets raw rows                    │
+│    DTO shapes the response for the consumer              │
+│    Redis caches the shaped response                      │
+└──────────────────────┬──────────────────────────────────┘
+                       │ JSON response (DTO shape)
+                       ▼
+┌─────────────────────────────────────────────────────────┐
+│ 3. ADAPTER (pure function, client-side)                 │
+│    API response → component props                        │
+│    Raw dates → "2 days ago"                              │
+│    Status codes → badge variants                         │
+│    Nested objects → flat props                           │
+│    Null handling → fallback values                        │
+└──────────────────────┬──────────────────────────────────┘
+                       │ typed props (ViewModelType)
+                       ▼
+┌─────────────────────────────────────────────────────────┐
+│ 4. ENTITY VIEW CONFIG (from DB or defaults)             │
+│    Which fields to show in this view type                │
+│    Which actions are available                           │
+│    Which transition preset to use                        │
+│    Tabs, layout, aspect ratio                            │
+└──────────────────────┬──────────────────────────────────┘
+                       │ config + props
+                       ▼
+┌─────────────────────────────────────────────────────────┐
+│ 5. COMPONENT (renders the pixel)                        │
+│    EntityView → picks view type → renders content       │
+│    Uses Elements (shadcn) + Blocks (shadcn)             │
+│    Applies CSS variables from visual_identity            │
+│    Wrapped in Motion layoutId for transitions            │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### Layer 1→2: API Response Shaping (DTO)
+
+**The API never returns raw database rows.**
+Every endpoint returns a **DTO** — a response shaped for consumption.
+
+```typescript
+// What Supabase returns (raw):
+{
+  id: 'abc-123',
+  name: 'Dentour Platform',
+  slug: 'dentour',
+  organization_id: 'org-456',
+  status: 'building',
+  created_at: '2026-03-15T10:00:00Z',
+  updated_at: '2026-04-07T14:30:00Z',
+  // no entity count, no client name — need JOINs
+}
+
+// What the API returns (DTO):
+{
+  id: 'abc-123',
+  name: 'Dentour Platform',
+  slug: 'dentour',
+  status: 'building',
+  organization: { id: 'org-456', name: 'Dentour' },
+  client: { id: 'client-789', name: 'Dr. Petrov' },
+  stats: {
+    entity_count: 12,
+    spec_count: 8,
+    change_count: 3,
+    open_tasks: 5,
+  },
+  created_at: '2026-03-15T10:00:00Z',
+  updated_at: '2026-04-07T14:30:00Z',
+}
+```
+
+**DTO design rules:**
+
+```
+1. Flatten relationships one level (include org name, client name)
+2. Pre-compute aggregations (entity_count, open_tasks)
+3. Never expose internal IDs the client doesn't need
+4. Always include _type field for generic renderers
+5. Shape matches what the component needs — no extra fields
+```
+
+#### Layer 2→3: Adapters (pure transform functions)
+
+**Adapters sit between the API response and the component.**
+They are pure functions — no side effects, no API calls, easy to test.
+
+```typescript
+// packages/shared/src/adapters/project-adapter.ts
+
+import type { ProjectDTO } from '@rapoport/api';
+import type { ProjectViewModel } from '../view-models/project';
+
+/**
+ * Transforms API response into what the component renders.
+ * Pure function. No side effects. Easy to test.
+ */
+export function toProjectViewModel(dto: ProjectDTO): ProjectViewModel {
+  return {
+    id: dto.id,
+    name: dto.name,
+    slug: dto.slug,
+
+    // Display values (human-readable)
+    status: dto.status,
+    statusLabel: STATUS_LABELS[dto.status],
+    statusColor: STATUS_COLORS[dto.status],
+
+    // Computed display
+    clientName: dto.client?.name ?? 'No client',
+    orgName: dto.organization?.name ?? '',
+    entityCount: dto.stats.entity_count,
+    openTasks: dto.stats.open_tasks,
+
+    // Time (human-readable)
+    createdAgo: formatRelativeTime(dto.created_at),
+    updatedAgo: formatRelativeTime(dto.updated_at),
+
+    // Visual identity (pass through for CSS variables)
+    palette: dto.visual_identity?.palette ?? null,
+
+    // Actions available in this context
+    actions: deriveActions(dto.status),
+  };
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  shaping: 'Shaping',
+  speccing: 'Writing specs',
+  building: 'In development',
+  delivered: 'Delivered',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  shaping: 'amber',
+  speccing: 'blue',
+  building: 'green',
+  delivered: 'gray',
+};
+
+function deriveActions(status: string): string[] {
+  switch (status) {
+    case 'shaping': return ['edit', 'archive'];
+    case 'building': return ['open', 'view-pipeline'];
+    case 'delivered': return ['view', 'create-case-study'];
+    default: return ['open'];
+  }
+}
+```
+
+**Why adapters, not inline transforms:**
+
+```
+Without adapter:
+  Component does: {formatDate(project.created_at)}
+  Component does: {project.client?.name ?? 'No client'}
+  Component does: {STATUS_MAP[project.status]}
+  → Logic scattered across JSX. Untestable. Duplicated.
+
+With adapter:
+  const vm = toProjectViewModel(apiResponse);
+  Component does: {vm.createdAgo}
+  Component does: {vm.clientName}
+  Component does: {vm.statusLabel}
+  → All logic in one place. Pure function. Tested once.
+```
+
+**Adapter test (unit test, no UI needed):**
+
+```typescript
+test('project adapter: delivered project has correct actions', () => {
+  const dto = makeProjectDTO({ status: 'delivered' });
+  const vm = toProjectViewModel(dto);
+  expect(vm.actions).toEqual(['view', 'create-case-study']);
+  expect(vm.statusLabel).toBe('Delivered');
+  expect(vm.statusColor).toBe('gray');
+});
+```
+
+#### Layer 3→4: ViewModel + ViewConfig = Render Instructions
+
+**ViewModel (from adapter) says WHAT data is available.**
+**ViewConfig (from DB) says WHICH data to show in THIS view.**
+
+```typescript
+// ViewModel has ALL fields:
+ProjectViewModel {
+  name, slug, status, statusLabel, statusColor,
+  clientName, orgName, entityCount, openTasks,
+  createdAgo, updatedAgo, palette, actions
+}
+
+// ViewConfig for Row says: show only these fields
+view_configs.row = {
+  fields: ['name', 'status', 'entityCount', 'updatedAgo'],
+  actions: ['open', 'archive']
+}
+
+// ViewConfig for Card says: show these fields + visual
+view_configs.card = {
+  fields: ['name', 'status', 'entityCount', 'clientName'],
+  show_visual_identity: true,
+  aspect_ratio: '4:3'
+}
+
+// Result: same ViewModel, different fields shown per view
+```
+
+#### The Full Hook: useEntityData
+
+```typescript
+// packages/shared/src/hooks/use-entity-data.ts
+
+/**
+ * useEntityData — combines all layers into one hook.
+ * Fetches → caches → syncs → adapts → configures.
+ *
+ * This is the "architectural glue" between API and Component.
+ */
+export function useEntityData<TDto, TViewModel>(options: {
+  entityType: string;
+  queryKey: readonly unknown[];
+  queryFn: () => Promise<TDto>;
+  adapter: (dto: TDto) => TViewModel;
+  table: string;
+  realtimeFilter?: string;
+  projectId?: string;
+}) {
+  // 1. Fetch + cache + realtime sync (from Data Sync Layer)
+  const query = useSyncedQuery({
+    queryKey: options.queryKey,
+    queryFn: options.queryFn,
+    table: options.table,
+    realtimeFilter: options.realtimeFilter,
+  });
+
+  // 2. Adapt API response → ViewModel
+  const viewModel = useMemo(
+    () => query.data ? options.adapter(query.data) : null,
+    [query.data, options.adapter]
+  );
+
+  // 3. Read view config from DB (cached)
+  const viewConfig = useEntityViewConfig(
+    options.entityType,
+    options.projectId
+  );
+
+  return {
+    viewModel,           // adapted data, ready to render
+    viewConfig,          // DB config (fields, actions, transitions)
+    isLoading: query.isLoading,
+    error: query.error,
+  };
+}
+
+// Usage in a page:
+function ProjectPage({ slug }: { slug: string }) {
+  const { viewModel, viewConfig, isLoading } = useEntityData({
+    entityType: 'project',
+    queryKey: ['project', slug],
+    queryFn: () => api.getProject({ slug }),
+    adapter: toProjectViewModel,
+    table: 'projects',
+    realtimeFilter: `slug=eq.${slug}`,
+  });
+
+  if (isLoading) return <ProjectDetailSkeleton />;
+  if (!viewModel) return <NotFound />;
+
+  return (
+    <EntityView
+      entity={viewModel}
+      entityType="project"
+      view="detail"
+      config={viewConfig}
+    />
+  );
+}
+```
+
+#### Field Registry: how generic views know how to render each field
+
+```typescript
+// packages/shared/src/config/field-registry.ts
+
+/**
+ * Field Registry — tells generic views HOW to render each field.
+ * "status" → Badge component with color
+ * "created_at" → relative time text
+ * "avatar_url" → Avatar component
+ *
+ * This is the mapping between data types and UI elements.
+ */
+export const FIELD_REGISTRY: Record<string, FieldDefinition> = {
+  // Text fields
+  name:         { type: 'text', weight: 'bold' },
+  label:        { type: 'text', weight: 'bold' },
+  description:  { type: 'text', weight: 'normal', truncate: 80 },
+  slug:         { type: 'code' },
+
+  // Status fields → Badge
+  status:       { type: 'badge', colorMap: STATUS_COLORS },
+  phase:        { type: 'badge', colorMap: PHASE_COLORS },
+  priority:     { type: 'badge', colorMap: PRIORITY_COLORS },
+  fit_score:    { type: 'score', max: 10 },
+
+  // Numeric fields
+  entityCount:  { type: 'number', suffix: 'entities' },
+  openTasks:    { type: 'number', suffix: 'open' },
+  cost_usd:     { type: 'currency', currency: 'USD' },
+
+  // Time fields
+  createdAgo:   { type: 'relative-time' },
+  updatedAgo:   { type: 'relative-time' },
+  due_date:     { type: 'date', format: 'short' },
+
+  // Reference fields
+  clientName:   { type: 'text', icon: 'user' },
+  orgName:      { type: 'text', icon: 'building' },
+  assignee:     { type: 'avatar-name' },
+
+  // Visual fields
+  avatar_url:   { type: 'avatar' },
+  thumbnail:    { type: 'image', aspect: '4:3' },
+};
+
+// Generic renderer reads this:
+function EntityField({ field, value }: { field: string; value: any }) {
+  const def = FIELD_REGISTRY[field];
+  if (!def) return <span>{String(value)}</span>;
+
+  switch (def.type) {
+    case 'badge':
+      return <Badge variant={def.colorMap[value]}>{value}</Badge>;
+    case 'relative-time':
+      return <span className="text-sm text-muted">{value}</span>;
+    case 'currency':
+      return <span>${value.toFixed(2)}</span>;
+    case 'number':
+      return <span>{value} {def.suffix}</span>;
+    case 'avatar':
+      return <Avatar src={value} />;
+    // ...
+    default:
+      return <span>{String(value)}</span>;
+  }
+}
+```
+
+#### How this connects to OpenSpec
+
+```
+OpenSpec spec.md defines:
+  "What entities exist and what they mean"
+  → entities, relationships, scenarios
+
+Entity View Config (DB) defines:
+  "How each entity is displayed"
+  → fields per view, actions, transitions
+
+Field Registry (code) defines:
+  "How each field type renders"
+  → 'status' → Badge, 'date' → relative time
+
+Adapter (code) defines:
+  "How raw data becomes display data"
+  → API response → ViewModel
+
+OpenAPI spec defines:
+  "What shape the API returns"
+  → DTO types, generated by codegen
+
+The design process:
+  1. OpenSpec says: "Project has status, client, entity_count"
+  2. OpenAPI says: "GET /projects/:slug returns ProjectDTO"
+  3. Adapter says: "ProjectDTO → ProjectViewModel (computed fields)"
+  4. ViewConfig says: "Card shows: name, status, entityCount"
+  5. FieldRegistry says: "status renders as Badge(green)"
+  6. EntityView renders it all with the right transition
+```
+
+#### Known patterns (open-source precedent)
+
+```
+Our approach combines ideas from:
+
+React Admin (marmelab/react-admin):
+  Resource-based: <Resource name="projects" list={ProjectList} />
+  Field components: <TextField source="name" />, <DateField source="createdAt" />
+  → We take: Field Registry concept
+
+Payload CMS (payloadcms/payload):
+  Collection config in code → generates admin UI automatically
+  Field types with custom renderers
+  → We take: config-driven field rendering
+
+Retool / Appsmith:
+  Component configs stored in DB → UI renders from config
+  Drag & drop field ordering
+  → We take: DB-stored view configs (but code-first, not drag & drop)
+
+TanStack Table:
+  Column definitions as config → table renders automatically
+  Sorting, filtering, pagination from config
+  → We take: field list + behavior from config
+
+Clean Architecture (Uncle Bob):
+  Adapter layer between data and presentation
+  Use cases independent of UI framework
+  → We take: pure adapter functions, ViewModel pattern
+
+MVVM (Model-View-ViewModel):
+  ViewModel transforms Model for View consumption
+  → We take: toProjectViewModel() pattern
+```
+
+#### Phasing — don't build everything at once
+
+```
+PHASE 1 (MVP): Primitives
+  ✅ Hardcoded view components (ProjectRow, ProjectDetail)
+  ✅ Adapters as pure functions
+  ✅ Field rendering inline (no Field Registry yet)
+  ✅ View configs as TypeScript constants (not DB yet)
+  
+  Why: get something working fast. 5 entities max.
+  Cost: when 6th entity arrives, refactor to config.
+
+PHASE 2: Config-driven
+  ✅ Move view configs to entity_view_configs table
+  ✅ Build Field Registry
+  ✅ Generic views (auto-render from config)
+  ✅ Studio UI for editing view configs
+  
+  Why: 6+ entities, need consistency and speed.
+  Cost: migration from hardcoded to DB-driven.
+
+PHASE 3: Full platform
+  ✅ Per-project view config overrides
+  ✅ Client-facing view config editor (future)
+  ✅ Muse suggests view configs during Canvas
+  ✅ Field Registry extensible per project
+  
+  Why: multi-tenant, client customization.
+  Cost: complexity, but architecture supports it.
+```
+
+**We do NOT use Atomic Design.** "Atoms", "molecules", "organisms" 
+are abstract — clients don't understand them, and the boundaries
+between levels create pointless debates.
+
+**Our taxonomy: 5 levels, named by what you see.**
+
+```
+Level 1: FOUNDATION
+  What it is:  design tokens, not components
+  Examples:    colors, typography, spacing, icons, shadows
+  Storybook:   Foundation / Colors, Foundation / Typography
+  Client sees: "these are the building materials"
+
+Level 2: ELEMENTS
+  What it is:  smallest interactive or display unit
+  Examples:    Button, Input, Badge, Avatar, Toggle, Icon
+  Rule:        renders ONE thing, no business logic
+  Storybook:   Elements / Button, Elements / Input
+  Client sees: "these are the buttons and controls"
+
+Level 3: BLOCKS
+  What it is:  a group of elements that work together
+  Examples:    FormField (label + input + error), 
+               DataTable, NavigationBar, Sidebar,
+               SearchBar (input + icon + dropdown)
+  Rule:        reusable across entities, no entity-specific data
+  Storybook:   Blocks / FormField, Blocks / DataTable
+  Client sees: "these are the sections of a page"
+
+Level 4: ENTITY VIEWS
+  What it is:  an entity rendered in a specific view type
+  Examples:    ProjectCard, ProjectRow, ClientDetail,
+               TaskOption, InvoiceRow
+  Rule:        tied to entity data shape, uses Brand DNA,
+               wrapped in layoutId for morphing
+  Storybook:   Entities / Project / Card,
+               Entities / Project / Detail,
+               Entities / Client / Row
+  Client sees: "this is how a project looks as a card,
+               and this is how it looks full-screen"
+
+Level 5: SCREENS
+  What it is:  a complete page or panel
+  Examples:    Dashboard, Inbox, ProjectWorkspace, Login
+  Rule:        composes Entity Views + Blocks,
+               handles layout and data fetching
+  Storybook:   Screens / Dashboard, Screens / Inbox
+  Client sees: "this is the actual page"
+```
+
+**Storybook sidebar structure:**
+
+```
+📁 Foundation
+  ├── Colors
+  ├── Typography
+  ├── Spacing & Layout
+  ├── Icons (Lucide)
+  └── Animation Tokens
+
+📁 Elements
+  ├── Button
+  ├── Input
+  ├── Badge
+  ├── Avatar
+  ├── Toggle
+  ├── Spinner
+  └── ...
+
+📁 Blocks
+  ├── FormField
+  ├── DataTable
+  ├── SearchBar
+  ├── NavigationBar
+  ├── Sidebar
+  ├── Modal
+  ├── EmptyState
+  └── ...
+
+📁 Entities
+  ├── Project
+  │   ├── Inline
+  │   ├── Option
+  │   ├── Row
+  │   ├── Card
+  │   ├── Detail
+  │   └── View Transitions (interactive demo)
+  ├── Client
+  │   ├── Row
+  │   ├── Card
+  │   └── Detail
+  ├── Task
+  │   ├── Row
+  │   └── Detail
+  └── ...
+
+📁 Screens
+  ├── Dashboard
+  ├── Inbox
+  ├── ProjectWorkspace
+  └── ...
+```
+
+### Entity Description Card (in Storybook)
+
+Every entity in Storybook has an **Entity Card** — a structured
+description that any person (client, designer, developer) can
+read and understand.
+
+```
+┌─────────────────────────────────────────────────┐
+│  ENTITY: Project                                │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  WHAT IT IS                                     │
+│  A client engagement — from discovery to        │
+│  delivery. Contains domain map, specs, pipeline.│
+│                                                 │
+│  CATEGORY: rich entity (5 views + Brand DNA)    │
+│                                                 │
+│  GOALS                                          │
+│  • Show project health at a glance (Card)       │
+│  • Enable deep editing (Detail)                 │
+│  • Quick selection in lists (Row, Option)       │
+│  • Reference in other contexts (Inline)         │
+│                                                 │
+│  KEY DATA                                       │
+│  name, slug, status, entity_count,              │
+│  domain_graph, github_repo, created_at          │
+│                                                 │
+│  VISUAL IDENTITY                                │
+│  palette: from client brand or default          │
+│  mood: depends on project stage                 │
+│  motion: spring.snappy for status changes       │
+│                                                 │
+│  BEHAVIOR                                       │
+│  • Card click → Detail (layoutId morph)         │
+│  • Status change → badge animation              │
+│  • Hover → subtle scale + shadow                │
+│                                                 │
+│  VIEWS AVAILABLE                                │
+│  ☑ Inline  ☑ Option  ☑ Row  ☑ Card  ☑ Detail   │
+│                                                 │
+│  USED IN                                        │
+│  Dashboard (Card), Inbox (Row),                 │
+│  Command palette (Option), Breadcrumbs (Inline) │
+│                                                 │
+└─────────────────────────────────────────────────┘
+```
+
+**This card exists as a Storybook doc page for each entity.**
+It's the first thing anyone reads before looking at the views.
+
+### Rich vs Utility Entities
+
+Not every entity needs all 5 views. Two tiers:
+
+```
+RICH ENTITIES (5 views + Brand DNA + animation)
+  Entity has visual personality, client-facing presence.
+  Full visual_identity, voice, behavior fields.
+  All 5 views designed and implemented.
+
+  → Project, Client, Organization, NetworkMember, Article
+
+UTILITY ENTITIES (2-3 views + category defaults)
+  Entity is functional, not a "character".
+  No custom palette — uses category color defaults.
+  Only the views that are actually used.
+
+  → Task (Row + Detail)
+  → Invoice (Row + Detail)
+  → Spec (Row + Detail)
+  → Message (Row only)
+  → ActivityLog (Row only)
+  → Notification (Inline + Row)
+
+Category default palettes:
+  user         → blue
+  service      → green
+  content      → purple
+  transaction  → amber
+  external     → gray
+  internal     → teal
+```
+
+### Component Architecture Workflow
+
+How to go from "new entity" to "shipped views":
+
+```
+Step 1: DEFINE — entity data shape
+  "What data does this entity have?"
+  → Write in OpenSpec spec.md: attributes, relationships
+  → Decide: rich or utility?
+
+Step 2: DESCRIBE — entity card in Storybook
+  "What is this entity? What are its goals?"
+  → Write Entity Description Card (see template above)
+  → Define: which views are needed, where are they used
+
+Step 3: WIREFRAME — in Storybook stories
+  "How does each view look?"
+  → Create stories with placeholder data
+  → Use Storybook controls for different states
+     (empty, loading, error, full data, long text)
+  → Pavel reviews: "does this feel right?"
+
+Step 4: ANIMATE — transitions between views
+  "How does this entity move?"
+  → Define entry animation (appear in list, appear on map)
+  → Define view transitions (Card → Detail morph)
+  → Define micro-interactions (hover, select, status change)
+  → Use animation tokens, not custom values
+
+Step 5: IMPLEMENT — real data
+  → Connect to useSyncedQuery
+  → Wire CSS variables from entity.visual_identity
+  → Add to Storybook with real and mock data
+
+Step 6: INTEGRATE — place on screens
+  → Add to actual pages (Dashboard, Inbox, etc.)
+  → Verify responsive behavior per breakpoint
+  → Verify layoutId morph works in real routing context
+```
+
+### Entity View System — Known Limitations
+
+Documented for honest planning:
+
+```
+1. UPFRONT COST
+   Each new rich entity = 5 components + variants + tokens.
+   3-4x more work than "just make a table and a page".
+   Pays off after 5+ entities. We have 11 → worth it.
+
+2. layoutId MORPHING IS FRAGILE
+   Works: Card → Side Panel, Card → Modal (same page)
+   Breaks: Card → New Page (Next.js route change)
+   Solution: morph within page, fade between pages.
+   Full-page morph = future (View Transitions API in React 19).
+
+3. LONG LISTS (200+ items)
+   Motion on every row = performance issue.
+   Solution: rows in lists are plain div + Tailwind transitions.
+   Motion activates only on interaction (click to expand).
+
+4. BRAND DNA COUPLING
+   One palette change affects all 5 views simultaneously.
+   Solution: entity palette = brand input, each view adapts
+   via color-mix() for contrast. Not raw palette application.
+
+5. TESTING ANIMATIONS
+   Can test: correct component renders, CSS vars applied.
+   Cannot test: "morph feels smooth" — only visual review.
+   Solution: Storybook stories + manual review before release.
+```
+
+### A/B Testing Entity Views
+
+**Show different views to different users. Measure which works.**
+
+The Entity View System + DB-stored configs make A/B testing
+natural: same entity, different ViewConfig per variant.
+
+**How it works:**
+
+```
+PostHog (already integrated) handles:
+  1. Feature flags → which variant a user sees
+  2. Analytics → which variant performs better
+  3. Experiments → statistical significance
+
+Entity View System handles:
+  1. Read variant from PostHog flag
+  2. Load corresponding ViewConfig from DB
+  3. Render the right view
+  4. Track events back to PostHog
+```
+
+**Implementation:**
+
+```typescript
+// packages/shared/src/hooks/use-ab-view.ts
+
+import { useFeatureFlag } from '@rapoport/analytics'; // PostHog wrapper
+import { useEntityViewConfig } from '@rapoport/db';
+
+/**
+ * useABView — loads the right view config based on active experiment.
+ *
+ * PostHog feature flag returns variant key ('control' | 'variant_a' | 'variant_b')
+ * DB has view configs per variant.
+ */
+export function useABView(options: {
+  entityType: string;
+  experimentKey: string;  // PostHog experiment flag key
+  projectId?: string;
+}) {
+  // 1. PostHog tells us which variant this user sees
+  const variant = useFeatureFlag(options.experimentKey);
+  // Returns: 'control' | 'variant_a' | 'variant_b' | undefined
+
+  // 2. Load view config for this variant
+  const config = useEntityViewConfig(
+    options.entityType,
+    options.projectId,
+    variant ?? 'control'  // fallback to control
+  );
+
+  // 3. Track that this variant was shown
+  useEffect(() => {
+    if (variant) {
+      trackEvent('experiment_exposure', {
+        experiment: options.experimentKey,
+        variant,
+        entity_type: options.entityType,
+      });
+    }
+  }, [variant]);
+
+  return { config, variant };
+}
+```
+
+**DB schema extension for A/B configs:**
+
+```sql
+-- Add variant column to entity_view_configs
+alter table entity_view_configs
+  add column variant text default 'control';
+
+-- Now the unique constraint includes variant:
+alter table entity_view_configs
+  drop constraint entity_view_configs_entity_key_project_id_key,
+  add constraint entity_view_configs_unique
+    unique(entity_key, project_id, variant);
+
+-- Example: two variants of ProjectCard
+INSERT INTO entity_view_configs
+  (entity_key, variant, views_enabled, view_configs)
+VALUES
+  ('project', 'control', '{card,detail}', '{
+    "card": { "fields": ["name", "status", "entityCount"] }
+  }'),
+  ('project', 'variant_a', '{card,detail}', '{
+    "card": { "fields": ["name", "status", "clientName", "updatedAgo"] }
+  }');
+```
+
+**What you can A/B test:**
+
+```
+View-level experiments:
+  - Different fields on a Card (which info matters most?)
+  - Different field order on a Row
+  - Card aspect ratio (4:3 vs 16:9)
+  - Show/hide visual_identity on Card
+  - Different tab order in Detail view
+
+Transition experiments:
+  - Spring presets (snappy vs gentle — which feels better?)
+  - Morph vs fade (layoutId vs simple opacity)
+  - Hover effects (scale vs shadow vs border)
+
+Layout experiments:
+  - Grid vs list for project overview
+  - Sidebar vs modal for entity detail
+  - Search: command palette vs search bar
+
+Page-level experiments:
+  - Landing page hero variants
+  - Muse greeting style (formal vs casual)
+  - Canvas layout (chat left vs chat right)
+```
+
+**Tracking (PostHog events):**
+
+```typescript
+// Automatic tracking per entity view
+function EntityView({ entity, entityType, view, config }: Props) {
+  // Track view render
+  useEffect(() => {
+    trackEvent('entity_viewed', {
+      entity_type: entityType,
+      view_type: view,
+      entity_id: entity.id,
+      variant: config.variant,
+    });
+  }, [entity.id, view]);
+
+  // Track interactions
+  const trackAction = (action: string) => {
+    trackEvent('entity_action', {
+      entity_type: entityType,
+      view_type: view,
+      action,
+      entity_id: entity.id,
+      variant: config.variant,
+    });
+  };
+
+  // ...
+}
+```
+
+**Rule: every experiment has a hypothesis and a success metric.**
+
+```
+Template:
+  Experiment: card-fields-v2
+  Hypothesis: "Showing client name instead of entity count
+               increases click-through to Detail view."
+  Variants: control (entityCount) vs variant_a (clientName)
+  Metric: Card → Detail click rate
+  Duration: 2 weeks minimum
+  Sample: all Studio users (Pavel + network members)
+```
+
+**Phasing:**
+
+```
+Phase 1: No A/B testing. Ship one version. Get it working.
+Phase 2: PostHog feature flags for layout experiments.
+         ViewConfig variant column in DB.
+Phase 3: Full experiment framework with useABView hook.
+```
+
+### Accessibility in Components
+
+**Accessibility is not a feature. It's a property of every component.**
+It lives in the component code, not in a separate layer.
+
+#### Where a11y rules live
+
+```
+THREE places, enforced at different stages:
+
+1. CODE (build time) — ESLint catches missing attributes
+   eslint-plugin-jsx-a11y → errors on missing alt, missing label,
+   invalid ARIA, missing roles, click-without-keyboard
+
+   packages/ui/.eslintrc:
+     extends: ['plugin:jsx-a11y/strict']  // strict, not recommended
+
+   What it catches:
+     ❌ <img src="..." />                → missing alt
+     ❌ <div onClick={...}>              → missing role + keyboard
+     ❌ <input />                        → missing label
+     ❌ aria-hidden="true" on focusable  → conflict
+     ❌ <button><div>text</div></button> → invalid nesting
+
+2. STORYBOOK (visual review) — addon shows violations per story
+   @storybook/addon-a11y → axe-core runs on every story
+   
+   packages/ui/.storybook/main.ts:
+     addons: ['@storybook/addon-a11y']
+
+   What it catches:
+     ❌ Color contrast below 4.5:1 (text) or 3:1 (large text)
+     ❌ Missing landmark roles
+     ❌ Focus order issues
+     ❌ ARIA attribute misuse
+
+   Rule: no story can ship with axe violations in the panel.
+   Storybook sidebar shows a11y status per component.
+
+3. CI (automation) — axe-core runs in Playwright tests
+   @axe-core/playwright → automated check on critical pages
+
+   What it catches:
+     Same as Storybook addon, but automated.
+     Runs on every PR. Violations = build failure.
+```
+
+#### Per-component a11y checklist
+
+**Every component in @rapoport/ui must pass this before merge:**
+
+```
+ELEMENTS (Button, Input, Badge, etc.):
+  □ Has accessible name (aria-label or visible label)
+  □ Keyboard operable (Enter/Space for buttons, Tab for navigation)
+  □ Focus visible (outline on :focus-visible, never :focus)
+  □ Color not the only indicator (icon + color, not just color)
+  □ Meets contrast ratio (4.5:1 text, 3:1 large text / UI)
+
+BLOCKS (Dialog, Sheet, Table, etc.):
+  □ Everything from Elements, plus:
+  □ Focus trap (Dialog, Sheet — focus stays inside when open)
+  □ Escape closes (Dialog, Sheet, Popover, Dropdown)
+  □ Focus returns to trigger on close
+  □ ARIA roles correct (dialog, navigation, table, etc.)
+  □ Screen reader announces opening/closing
+
+ENTITY VIEWS:
+  □ Everything from Blocks, plus:
+  □ Entity type announced ("Project: Dentour Platform")
+  □ View transitions respect prefers-reduced-motion
+  □ Status changes announced via aria-live="polite"
+  □ Actions discoverable via keyboard (Tab to action, Enter to execute)
+  □ Card click has keyboard equivalent (Enter on focused card)
+  □ Detail view has proper heading hierarchy (h2 → h3 → h4)
+
+SCREENS:
+  □ Everything from Entity Views, plus:
+  □ Page has <title> and <h1>
+  □ Landmarks present: <main>, <nav>, <aside>
+  □ Skip link ("Skip to main content") as first focusable element
+  □ Breadcrumb has aria-label="Breadcrumb"
+  □ Loading states announced ("Loading projects...")
+  □ Error states announced and actionable
+```
+
+#### Component template with a11y built-in
+
+```typescript
+// Every Entity View component follows this template:
+
+function EntityCard({ entity, config, onAction }: Props) {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.article
+      // Semantic HTML: article for standalone content
+      role="article"
+      aria-label={`${entity._type}: ${entity.name}`}
+      
+      // Keyboard: card is focusable and clickable
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') onAction?.('open');
+      }}
+      
+      // Motion: respect reduced motion preference
+      layoutId={`entity-${entity.id}`}
+      transition={
+        shouldReduceMotion
+          ? { duration: 0 }
+          : ANIMATION.viewTransition
+      }
+    >
+      {/* Status changes announced to screen readers */}
+      <div aria-live="polite" className="sr-only">
+        {entity.statusLabel}
+      </div>
+
+      {/* Visible content */}
+      <h3>{entity.name}</h3>
+      
+      <Badge
+        variant={entity.statusColor}
+        // Icon + text, never color alone
+      >
+        <StatusIcon status={entity.status} aria-hidden="true" />
+        {entity.statusLabel}
+      </Badge>
+
+      {/* Actions: each has accessible label */}
+      <div role="group" aria-label="Actions">
+        {config.actions?.map(action => (
+          <Button
+            key={action}
+            variant="ghost"
+            size="sm"
+            aria-label={`${ACTION_LABELS[action]} ${entity.name}`}
+            onClick={() => onAction?.(action)}
+          >
+            <ActionIcon action={action} aria-hidden="true" />
+            {ACTION_LABELS[action]}
+          </Button>
+        ))}
+      </div>
+    </motion.article>
+  );
+}
+```
+
+#### shadcn/ui a11y baseline
+
+```
+shadcn components use Radix UI primitives.
+Radix handles most a11y out of the box:
+
+  Dialog:     focus trap, Escape close, aria-modal, role="dialog"
+  Select:     keyboard navigation, aria-expanded, listbox pattern
+  Tabs:       arrow key navigation, aria-selected, tabpanel
+  Popover:    focus management, Escape close
+  Tooltip:    aria-describedby, delay, keyboard trigger
+  DropdownMenu: arrow keys, typeahead, role="menu"
+  AlertDialog: focus on action button, no outside click dismiss
+
+What Radix does NOT handle (we must add):
+  ❌ Color contrast (depends on our theme)
+  ❌ Visible focus styles (depends on our CSS)
+  ❌ Screen reader text for icons (we add aria-label)
+  ❌ Loading / error state announcements
+  ❌ Custom component a11y (entity views, domain map)
+```
+
+#### Accessibility testing tools
+
+```
+Development:
+  eslint-plugin-jsx-a11y     → lint-time (build fails)
+  @storybook/addon-a11y      → visual in Storybook (axe-core)
+
+CI:
+  @axe-core/playwright        → automated tests (PR fails)
+
+Manual (before release):
+  macOS VoiceOver (Safari)    → primary screen reader test
+  NVDA (Firefox/Windows)      → secondary
+  Keyboard-only navigation    → every page, every flow
+  Zoom 200%                   → no horizontal scroll
+  High contrast mode          → all text readable
+  prefers-reduced-motion      → no layout shift, no spring
+
+Frequency:
+  Every PR: ESLint + axe-core CI (automated)
+  Every story: Storybook a11y panel (visual review)
+  Before release: manual VoiceOver + keyboard (Pavel)
+  Quarterly: full audit of all pages + screens
+```
+
+#### a11y in Entity View transitions
+
+```
+Motion + a11y interaction:
+
+prefers-reduced-motion: reduce
+  → All layoutId transitions: duration = 0 (instant)
+  → All spring animations: disabled
+  → All scroll-triggered animations: disabled
+  → Fade only: opacity 0→1 allowed (no spatial movement)
+  → Skeleton pulse: allowed (simple opacity cycle)
+
+prefers-reduced-motion: no-preference (default)
+  → Full animations as designed
+
+Implementation (already in animation tokens):
+  const shouldReduce = useReducedMotion();
+  const transition = shouldReduce
+    ? { duration: 0 }
+    : ANIMATION.viewTransition;
+
+Screen reader and transitions:
+  → View change: aria-live="polite" announces new content
+  → "Now showing Project detail view"
+  → Status change: aria-live="polite" announces new status
+  → Loading: aria-busy="true" on container
+  → Error: role="alert" on error message
+```
+
+### Styling
 
 **Tailwind CSS as foundation** — utility-first, fast,
 consistent. Good for structure and layout.
 
-**Beyond Tailwind for art:**
-- CSS animations + Framer Motion for entity transitions
-- SVG + D3.js for domain maps and data visualization
-- Canvas API for complex visual compositions
+**Beyond Tailwind for rich entities:**
+- Motion (Framer Motion) for entity transitions and gestures
 - CSS custom properties for entity-level theming
+- Animation tokens for consistent motion
 
 ```
-Entity theming example:
-  --entity-project-color: #4F46E5
-  --entity-project-bg: #EEF2FF
-  --entity-client-color: #059669
-  --entity-client-bg: #ECFDF5
-  
-  Each entity carries its own visual DNA.
+Entity theming via CSS variables:
+  --entity-primary:   from entity.visual_identity.palette.primary
+  --entity-accent:    from entity.visual_identity.palette.accent
+  --entity-bg:        color-mix(in srgb, var(--entity-primary) 5%, white)
+  --entity-border:    color-mix(in srgb, var(--entity-primary) 20%, transparent)
+
+Category defaults (when entity has no custom palette):
+  user:        --entity-primary: #2563EB  (blue)
+  service:     --entity-primary: #059669  (green)
+  content:     --entity-primary: #7C3AED  (purple)
+  transaction: --entity-primary: #D97706  (amber)
+  external:    --entity-primary: #6B7280  (gray)
+  internal:    --entity-primary: #0D9488  (teal)
 ```
 
 ---
@@ -2682,6 +4566,7 @@ Monorepo                    Cloudflare Pages Project    Domain
 ─────────────────────────────────────────────────────────────────
 apps/web/                → rapoport-web               pavelrapoport.com
 apps/studio/             → rapoport-studio            studio.pavelrapoport.com
+packages/ui/.storybook/  → rapoport-ui                ui.pavelrapoport.com
 apps/client-portal/      → rapoport-portal            portal.pavelrapoport.com (future)
 
 services/api/            → Railway service             api.pavelrapoport.com
@@ -2708,6 +4593,14 @@ Project: rapoport-studio
   Build watch paths:
     Include: apps/studio/**, packages/**
     Exclude: apps/web/**
+
+Project: rapoport-ui (Storybook)
+  Root directory:        packages/ui
+  Build command:         cd ../.. && pnpm turbo build-storybook --filter=@rapoport/ui
+  Build output:          packages/ui/storybook-static
+  Build watch paths:
+    Include: packages/ui/**
+    Exclude: apps/**
 ```
 
 Cloudflare allows up to 5 Pages projects per repository.
@@ -2720,6 +4613,7 @@ All DNS lives in Cloudflare. Railway API gets a CNAME.
 ```
 pavelrapoport.com          → Cloudflare Pages (rapoport-web)
 studio.pavelrapoport.com   → Cloudflare Pages (rapoport-studio)
+ui.pavelrapoport.com       → Cloudflare Pages (rapoport-ui / Storybook)
 api.pavelrapoport.com      → CNAME → Railway service (proxied through CF)
 
 dentour.eu                  → Cloudflare Pages (dentour-web)

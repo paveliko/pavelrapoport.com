@@ -112,7 +112,7 @@ with role-based access.
 
 ### Requirement: Organization Settings
 
-The system SHALL allow organization owners to manage settings, members, and billing.
+The system SHALL allow owners to manage organization settings and members.
 
 #### Scenario: Managing organization
 - **WHEN** an owner opens organization settings
@@ -141,7 +141,7 @@ All project data SHALL be scoped to the organization.
 
 ### Requirement: Organization Switching
 
-The system SHALL allow users to switch between their organizations.
+The system SHALL allow users to switch between organizations they belong to.
 
 #### Scenario: Switching context
 - **WHEN** a user belongs to multiple organizations

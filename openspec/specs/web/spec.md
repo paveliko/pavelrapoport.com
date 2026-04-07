@@ -35,7 +35,7 @@ and services within seconds of arrival.
 
 ### Requirement: Portfolio / Case Studies
 
-The system SHALL display case studies linked to the `blog` domain.
+The site SHALL display case studies linked to the `blog` domain.
 
 #### Scenario: Case study listing
 - **WHEN** a visitor scrolls to the portfolio section
@@ -49,7 +49,7 @@ The system SHALL display case studies linked to the `blog` domain.
 
 ### Requirement: SEO & Meta
 
-The system SHALL provide SEO metadata and structured data for all public pages.
+The system SHALL provide proper SEO metadata and structured data for all pages.
 
 #### Scenario: Search engine indexing
 - **WHEN** Google crawls pavelrapoport.com
@@ -79,7 +79,7 @@ The system SHALL support multiple languages with automatic detection.
 
 ### Requirement: Performance
 
-The system SHALL meet Core Web Vitals thresholds on all public pages.
+The system SHALL meet Core Web Vitals targets on all public pages.
 
 #### Scenario: Core Web Vitals
 - **GIVEN** the public site

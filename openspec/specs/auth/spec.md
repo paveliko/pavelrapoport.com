@@ -504,7 +504,7 @@ The system SHALL support two base roles at launch.
 
 ### Requirement: Access by Domain Role
 
-The system SHALL grant access based on the user's domain role.
+The system SHALL grant access based on domain role (client or network member).
 
 #### Scenario: Client access
 - **GIVEN** user has client profile
@@ -602,7 +602,7 @@ The system SHALL support magic link, password reset, and email change flows.
 
 ### Requirement: Route Protection
 
-The system SHALL enforce route-level access control based on user role.
+The system SHALL enforce route-level access control based on role.
 
 #### Scenario: Admin-only route
 - **WHEN** non-admin hits /studio/finance → denied
@@ -638,7 +638,7 @@ The system SHALL enforce row-level security on every table in the public schema.
 
 ### Requirement: Session Expiry
 
-The system SHALL handle session expiration and revocation gracefully.
+The system SHALL handle session expiry, revocation, and self-service session management.
 
 #### Scenario: Active session expires
 - **WHEN** session expires during use

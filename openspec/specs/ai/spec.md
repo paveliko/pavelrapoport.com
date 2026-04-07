@@ -43,9 +43,10 @@ personality, and constraints per mode.
 The system SHALL support selecting which AI model handles
 which task.
 
-#### Scenario: Selecting a model per task type
-- **WHEN** Pavel configures model preferences for a project
-- **THEN** each task type (Canvas, Scout, Architect, Builder) can use a different model
+#### Scenario: Selecting a model per mode
+- **WHEN** Pavel configures a mode
+- **THEN** he can select which AI model to use for that mode
+- **AND** the system routes requests to the configured model
 
 ### Requirement: Token Tracking
 
@@ -61,9 +62,10 @@ per project.
 The agent SHALL have access to Pavel's stack preferences,
 standards, and conventions as persistent context.
 
-#### Scenario: Loading persistent context
-- **WHEN** the agent starts a new session
-- **THEN** it loads the knowledge base for the active project and applies it as context
+#### Scenario: Loading knowledge base
+- **WHEN** the agent starts a session
+- **THEN** it loads relevant knowledge base entries as context
+- **AND** preferences and standards inform its responses
 
 ### Requirement: AI Security
 

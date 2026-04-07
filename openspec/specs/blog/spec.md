@@ -51,7 +51,7 @@ The system SHALL support structured case studies linked to projects.
 
 ### Requirement: SEO
 
-The system SHALL ensure all published content has proper search engine optimization metadata.
+The system SHALL optimize all published content for search engines.
 
 #### Scenario: Search engine optimization
 - **GIVEN** a published article or case study
@@ -79,7 +79,7 @@ The system SHALL organize blog content into predefined categories.
 
 ### Requirement: RSS Feed
 
-The system SHALL provide an RSS feed of published blog content.
+The system SHALL provide an RSS feed for published content.
 
 #### Scenario: RSS availability
 - **GIVEN** the blog has published content
