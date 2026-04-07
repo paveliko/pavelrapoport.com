@@ -350,6 +350,27 @@ DNS manager.
 
 ---
 
+### `tasks`
+
+**What:** Universal work units. Assigned to anyone — people or AI.
+
+**For whom:** Pavel (manages), network members (execute),
+AI agent (creates and executes), clients (see their task status).
+
+**Why it exists:** Everything produces work. Email → task.
+Spec approved → task. Deadline → task. Tasks are polymorphic —
+assigned to any user or AI agent, linked to any entity in
+the system.
+
+**What's inside:**
+- Polymorphic assignment — user or AI agent
+- Polymorphic linking — project, client, org, domain, connection
+- Sources — manual, AI, email, calendar, Linear, webhook, system
+- Task board — my tasks, project tasks, AI queue
+- Priority and status lifecycle
+
+---
+
 ### `auth`
 
 **What:** Authentication and authorization across the

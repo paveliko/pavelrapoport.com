@@ -49,6 +49,7 @@ context: |
   - ai — AI agents, automation, internal tooling
   - integrations — universal connectors to external services (21 types, 7 categories)
   - domains — DNS, subdomains, SSL, email configuration per organization
+  - tasks — universal work units, polymorphic assignment (user/AI), 7 sources
 
   ## Site Structure
   Public (no auth):

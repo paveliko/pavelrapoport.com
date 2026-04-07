@@ -113,6 +113,16 @@
 - **Validate:** GET /api/domains
 - **Scope:** global
 
+### Google Workspace
+- **Auth:** OAuth 2.0
+- **Fields:**
+  - `account_email` (email) — Google Workspace account
+  - `oauth_token` (secret) — OAuth access token
+  - `refresh_token` (secret) — for token renewal
+  - `enabled_services` (text[]) — gmail, calendar, drive, contacts
+- **Validate:** GET https://www.googleapis.com/oauth2/v1/userinfo
+- **Scope:** global
+
 ---
 
 ## P2 — Growth
@@ -215,13 +225,13 @@
 
 | Field Type | Count | Examples |
 |-----------|-------|---------|
-| secret | 35 | API keys, tokens, DSNs |
+| secret | 37 | API keys, tokens, DSNs |
 | text | 22 | slugs, IDs, names |
 | url | 5 | endpoints, webhooks |
 | select | 8 | providers, models, modes |
-| email | 2 | from/reply-to |
+| email | 3 | from/reply-to, account |
 | number | 2 | max_tokens, dimensions |
 | boolean | 1 | enabled flag |
-| text[] | 2 | chat_ids, allowed_commands |
+| text[] | 3 | chat_ids, allowed_commands, enabled_services |
 
-Total: 77 fields across 21 integrations.
+Total: 81 fields across 22 integrations.
