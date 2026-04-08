@@ -8,6 +8,7 @@ import "../globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { GridOverlay } from "@/components/GridOverlay";
+import { BreakpointIndicator } from "@/components/dev/BreakpointIndicator";
 
 type Params = { locale: string };
 
@@ -80,6 +81,7 @@ export default async function LocaleLayout({
           <Footer />
         </NextIntlClientProvider>
         {process.env.NODE_ENV === "development" && <GridOverlay />}
+        {process.env.NODE_ENV === "development" && <BreakpointIndicator />}
       </body>
     </html>
   );

@@ -40,6 +40,11 @@
   --color-code-bg: #F5F3EE;
   --color-muted: #8A8880;
   --color-subtle: #F0EDE6;
+
+  /* Grid background — derived from brand ink color */
+  --grid-line-micro: color-mix(in srgb, var(--color-ink) 5%, transparent);
+  --grid-line-base: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  --grid-line-major: color-mix(in srgb, var(--color-ink) 25%, transparent);
 }
 
 /* ── Dark mode ── */
@@ -63,4 +68,13 @@
 body {
   background-color: var(--color-canvas);
   color: var(--color-ink);
+  background-image:
+    linear-gradient(var(--grid-line-micro) 0.5px, transparent 0.5px),
+    linear-gradient(90deg, var(--grid-line-micro) 0.5px, transparent 0.5px),
+    linear-gradient(var(--grid-line-base) 0.5px, transparent 0.5px),
+    linear-gradient(90deg, var(--grid-line-base) 0.5px, transparent 0.5px),
+    linear-gradient(var(--grid-line-major) 0.5px, transparent 0.5px),
+    linear-gradient(90deg, var(--grid-line-major) 0.5px, transparent 0.5px);
+  background-size: 4px 4px, 4px 4px, 16px 16px, 16px 16px, 64px 64px, 64px 64px;
+  background-position: center center;
 }

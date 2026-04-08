@@ -5907,6 +5907,42 @@ Weight:
   700 (bold): hero, emphasis only
 ```
 
+### Grid System
+
+```
+Pixel Perfect Grid — every layout starts from the grid.
+
+See also: identity.md > Philosophy > Pixel Perfect Grid
+
+Principles:
+  - Never approximate spacing — use design tokens only
+  - Never eyeball alignment — everything snaps to the grid
+  - If a component doesn't sit in a cell, it's wrong
+  - Every pixel has a cost: it exists to be useful or it doesn't exist
+
+Spacing scale (4px base unit):
+  Tailwind spacing classes ARE the grid tokens.
+  0.5 = 2px, 1 = 4px, 2 = 8px, 3 = 12px, 4 = 16px,
+  5 = 20px, 6 = 24px, 8 = 32px, 10 = 40px, 12 = 48px
+
+  Use only these values. No arbitrary spacing (p-[13px]).
+  If the design needs 13px, the design is wrong — snap to 12 or 16.
+
+Layout grid:
+  - gap-4 (16px) as default grid gap
+  - p-4 / p-6 as default container padding
+  - Components align to 4px increments — always
+
+Dev mode:
+  - Background grid overlay visible in development
+  - Toggle via debug panel or data-grid-overlay attribute
+  - Grid overlay catches alignment drift during implementation
+
+Review rule:
+  When reviewing UI changes — check grid alignment BEFORE
+  checking visual design. Structure first, aesthetics second.
+```
+
 ### 3D / Experimental Visual
 
 ```

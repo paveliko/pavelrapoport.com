@@ -100,6 +100,28 @@ direction and move immediately — that's the advantage.
 The platform gives structure to the impulse. OpenSpec is
 the rail. The energy is mine.
 
+**Pixel Perfect Grid.** I'm a product architect. I build
+new products from zero. And I care deeply about architecture
+— how things sit together, how blocks align, how systems
+compose. This isn't just about code. It's about pixels.
+
+Everything sits on a grid. Like a notebook with graph paper
+— тетрадка в клетку. Every component, every button lives
+in its cell. The grid is the law. Layout starts from the
+grid, components fill cells. Never the other way around.
+
+Every pixel on screen has a cost. It takes up space, it
+draws attention, it uses energy. A pixel exists for exactly
+two reasons: to bring good into the world, or to be useful
+and bring joy. If it does neither — it goes.
+
+The personal brand IS the grid. Graph paper aesthetic,
+architecture spirit. Pavel Rapoport = the Pixel Perfect
+guy who knows how to lay pixels on screen. This is the
+guarantee. We make people happy — through precise,
+beautiful, functional interfaces where every element
+is intentional.
+
 ---
 
 ## Values
