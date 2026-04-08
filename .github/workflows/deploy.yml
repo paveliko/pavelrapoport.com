@@ -45,6 +45,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Load secrets from 1Password
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          CLOUDFLARE_API_TOKEN: op://CI/cloudflare/api-token
+          CLOUDFLARE_ACCOUNT_ID: op://CI/cloudflare/account-id
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
@@ -67,8 +76,8 @@ jobs:
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy apps/web/out --project-name=rapoport-web --branch=${{ github.ref_name }}
 
   deploy-studio:
@@ -84,6 +93,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Load secrets from 1Password
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          CLOUDFLARE_API_TOKEN: op://CI/cloudflare/api-token
+          CLOUDFLARE_ACCOUNT_ID: op://CI/cloudflare/account-id
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -107,6 +125,6 @@ jobs:
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy apps/studio/out --project-name=rapoport-studio --branch=${{ github.ref_name }}
