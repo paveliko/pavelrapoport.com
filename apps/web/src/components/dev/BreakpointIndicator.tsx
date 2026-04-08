@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const BREAKPOINTS = [
   { name: "sm", width: 640, color: "rgba(34,197,94,0.25)" },
@@ -20,17 +20,21 @@ function getActiveBreakpoint(vw: number): string | null {
   return active;
 }
 
-export function BreakpointIndicator() {
-  const [vw, setVw] = useState(0);
+function subscribe(cb: () => void) {
+  window.addEventListener("resize", cb);
+  return () => window.removeEventListener("resize", cb);
+}
 
-  useEffect(() => {
-    setVw(window.innerWidth);
-    function onResize() {
-      setVw(window.innerWidth);
-    }
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+function getSnapshot() {
+  return window.innerWidth;
+}
+
+function getServerSnapshot() {
+  return 0;
+}
+
+export function BreakpointIndicator() {
+  const vw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   if (vw === 0) return null;
 

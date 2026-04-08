@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "source $HOME/.nvm/nvm.sh && nvm use 22 --silent && pnpm --filter @repo/web dev"],
+      "port": 3000
+    },
+    {
+      "name": "studio",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "source $HOME/.nvm/nvm.sh && nvm use 22 --silent && pnpm --filter @repo/studio dev"],
+      "port": 3001
+    },
+    {
+      "name": "all",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "source $HOME/.nvm/nvm.sh && nvm use 22 --silent && pnpm dev"],
+      "port": 3000
+    }
+  ]
+}
