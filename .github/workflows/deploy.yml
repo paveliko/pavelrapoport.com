@@ -69,8 +69,11 @@ jobs:
       - name: Turbo Cache
         uses: rharkor/caching-for-turbo@v1.7
 
-      - name: Build
+      - name: Build (Next.js)
         run: pnpm turbo build --filter=@repo/web
+
+      - name: Build (OpenNext → Cloudflare)
+        run: pnpm --filter @repo/web exec opennextjs-cloudflare build
 
       - name: Deploy to Cloudflare Pages
         id: deploy
@@ -78,7 +81,7 @@ jobs:
         with:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/out --project-name=rapoport-web --branch=${{ github.ref_name }}
+          command: pages deploy apps/web/.open-next/assets --project-name=rapoport-web --branch=${{ github.ref_name }}
 
   deploy-studio:
     name: Deploy Studio
