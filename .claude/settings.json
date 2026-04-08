@@ -22,7 +22,11 @@
       "Bash(npx commitlint:*)",
       "Bash(npx openspec:*)",
       "Bash(git status:*)",
-      "Bash(git commit -m ':*)"
+      "Bash(git commit -m ':*)",
+      "Bash(pnpm --version)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm turbo:*)",
+      "Bash(pnpm exec:*)"
     ],
     "additionalDirectories": [
       "/Users/pavelrapoport/Documents/GitHub/pavelrapoport.com/src/app/[lang]",
