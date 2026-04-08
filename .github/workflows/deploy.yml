@@ -65,11 +65,13 @@ jobs:
           infisical login --method=universal-auth \
             --client-id="$INFISICAL_UNIVERSAL_AUTH_CLIENT_ID" \
             --client-secret="$INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET" \
+            --domain="https://eu.infisical.com" \
             --silent
 
           infisical export \
             --projectId="1262d7b5-45e7-4fc6-9545-85fc60e42a47" \
             --env="${{ github.ref_name == 'main' && 'prod' || github.ref_name }}" \
+            --domain="https://eu.infisical.com" \
             --format=dotenv \
           | sed 's/\r$//' >> "$GITHUB_ENV"
 
@@ -139,11 +141,13 @@ jobs:
           infisical login --method=universal-auth \
             --client-id="$INFISICAL_UNIVERSAL_AUTH_CLIENT_ID" \
             --client-secret="$INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET" \
+            --domain="https://eu.infisical.com" \
             --silent
 
           infisical export \
             --projectId="1262d7b5-45e7-4fc6-9545-85fc60e42a47" \
             --env="${{ github.ref_name == 'main' && 'prod' || github.ref_name }}" \
+            --domain="https://eu.infisical.com" \
             --format=dotenv \
           | sed 's/\r$//' >> "$GITHUB_ENV"
 
