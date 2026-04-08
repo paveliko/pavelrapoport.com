@@ -57,6 +57,9 @@ jobs:
           INFISICAL_UNIVERSAL_AUTH_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
           INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
         run: |
+          test -n "$INFISICAL_UNIVERSAL_AUTH_CLIENT_ID" || { echo "::error::Missing INFISICAL_CLIENT_ID GitHub secret"; exit 1; }
+          test -n "$INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET" || { echo "::error::Missing INFISICAL_CLIENT_SECRET GitHub secret"; exit 1; }
+
           infisical export \
             --projectId="1262d7b5-45e7-4fc6-9545-85fc60e42a47" \
             --env="${{ github.ref_name == 'main' && 'prod' || github.ref_name }}" \
@@ -122,6 +125,9 @@ jobs:
           INFISICAL_UNIVERSAL_AUTH_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
           INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
         run: |
+          test -n "$INFISICAL_UNIVERSAL_AUTH_CLIENT_ID" || { echo "::error::Missing INFISICAL_CLIENT_ID GitHub secret"; exit 1; }
+          test -n "$INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET" || { echo "::error::Missing INFISICAL_CLIENT_SECRET GitHub secret"; exit 1; }
+
           infisical export \
             --projectId="1262d7b5-45e7-4fc6-9545-85fc60e42a47" \
             --env="${{ github.ref_name == 'main' && 'prod' || github.ref_name }}" \
