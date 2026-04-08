@@ -9,7 +9,8 @@
     "./proxy": "./src/proxy.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@repo/config": "workspace:*",

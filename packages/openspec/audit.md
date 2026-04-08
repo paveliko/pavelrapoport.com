@@ -13,7 +13,7 @@
 |---|---------|-----|---------------|----------------|
 | 1.1 | Auth flows (email, SMS, WhatsApp OTP) | PASS | All 3 described with scenarios in auth/spec.md | — |
 | 1.2 | Session management | PASS | Cookie scope `.pavelrapoport.com`, 1h access/7d refresh, rotation described | — |
-| 1.3 | Stolen session handling | MEDIUM | Not explicitly addressed. Short JWT TTL helps but no session revocation endpoint described | Add `revokeSession(userId)` to @rapoport/auth, mention in auth spec |
+| 1.3 | Stolen session handling | MEDIUM | Not explicitly addressed. Short JWT TTL helps but no session revocation endpoint described | Add `revokeSession(userId)` to @repo/auth, mention in auth spec |
 | 1.4 | MFA for admin | HIGH | Not mentioned anywhere. Pavel is the single admin with full platform access | Require TOTP/passkey for admin role. Single point of compromise |
 | 1.5 | 3-level access model | PASS | Platform->org->project well-defined, `can_access_project()` RLS function spec'd | — |
 | 1.6 | Privilege escalation prevention | MEDIUM | Roles described but no explicit guard against org_role self-modification | Add RLS policy: users cannot UPDATE their own org_role |

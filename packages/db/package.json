@@ -7,6 +7,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "generate-types": "supabase gen types typescript --project-id mtavnbjdgldttqdpwouo > src/types.ts",
     "db:types": "pnpm generate-types",
     "db:push": "supabase db push --db-url \"$DATABASE_URL\"",

@@ -98,7 +98,7 @@ Each project SHALL have an interactive entity graph.
 #### Scenario: Viewing domain map
 - **WHEN** a user opens a project's domain tab
 - **THEN** they see all entities and relationships as
-  an interactive graph (via @rapoport/domain-map)
+  an interactive graph (via @repo/domain-map)
 - **AND** access level determines edit vs read-only
 
 ---

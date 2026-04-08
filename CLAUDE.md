@@ -11,9 +11,11 @@ apps/
   web/       → public site (Next.js 16, port 3000)
   studio/    → internal dashboard (Next.js 16, port 3001)
 packages/
-  openspec/  → specs, conventions, project identity
+  auth/      → authentication, roles, middleware
+  config/    → env and service configuration
   db/        → database layer
-  i18n/      → internationalization
+  i18n/      → internationalization (next-intl)
+  openspec/  → specs, conventions, project identity
   ui/        → shared UI components
 docs/        → PRD, brand voice, career analysis
 ```
@@ -83,8 +85,8 @@ These are distilled from conventions — read the full document for details.
 
 - **Read before you write.** Read `packages/openspec/conventions.md` and the relevant Next.js doc before writing code.
 - **Don't duplicate conventions.** If it's in `conventions.md`, reference it — don't restate it.
-- **Branch from dev.** Use `feature/<name>`, `fix/<name>`, or `chore/<name>`.
-- **PR target is dev**, not main. Flow: feature → dev → staging → main.
+- **Branch from main.** Use `feature/<name>`, `fix/<name>`, or `chore/<name>`.
+- **PR target is main.** Flow: feature → main.
 - **Pre-commit hooks run:** commitlint on commit message + `pnpm lint` on staged files.
-- **Bilingual routing.** Public-facing pages support `/en` (default) and `/ru`.
+- **Multilingual routing.** Public-facing pages support `/en` (default), `/ru`, and `/he`.
 - **One spec per domain.** Use Given/When/Then format. Include role context (public/client/admin).

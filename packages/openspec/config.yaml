@@ -28,9 +28,9 @@ context: |
   4. AI-Augmented Development — CLI agents, spec-driven workflows, automation pipelines
 
   ## Tech Stack
-  Frontend: React 19, Next.js 15 (App Router), TypeScript, Tailwind CSS 4, D3.js, SVG, Canvas, XState
-  Backend: NestJS, Node.js, Supabase (PostgreSQL, Auth, RLS)
-  Packages: @rapoport/ui (shadcn/ui), @rapoport/db (Supabase), @rapoport/ai (agent), @rapoport/auth, @rapoport/config (connections), @rapoport/domain-map (React Flow)
+  Frontend: React 19, Next.js 16 (App Router), TypeScript, Tailwind CSS 4, D3.js, SVG, Canvas, XState
+  Backend: Supabase (PostgreSQL, Auth, RLS); NestJS (planned)
+  Packages: @repo/ui (shadcn/ui), @repo/db (Supabase), @repo/auth, @repo/config (env/service config), @repo/i18n (next-intl); planned: @repo/ai, @repo/api, @repo/domain-map
   Infra: Turborepo monorepo, pnpm, Cloudflare Pages
   AI: Claude Opus, MCP servers, RAG pipelines, XState agents
   Tooling: Linear, Git, OpenSpec, CLI-first architecture (CLI → JSON → DB → Read-only UI)

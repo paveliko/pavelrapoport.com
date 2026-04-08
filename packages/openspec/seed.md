@@ -410,7 +410,7 @@ Project connections (dentour-platform):
     config:
       project_id: (secret)
       token: (secret)
-    note: secrets management (may migrate to @rapoport/config)
+    note: secrets management (may migrate to @repo/config)
 
   - type: sentry
     scope: project

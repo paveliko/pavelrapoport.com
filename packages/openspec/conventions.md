@@ -55,9 +55,9 @@ Domain = OpenSpec domain or package:
 
 Monorepo packages versioned independently:
 ```
-@rapoport/ui       → 0.1.0, 0.2.0, ...
-@rapoport/auth     → 0.1.0, 0.2.0, ...
-@rapoport/db       → 0.1.0, 0.2.0, ...
+@repo/ui       → 0.1.0, 0.2.0, ...
+@repo/auth     → 0.1.0, 0.2.0, ...
+@repo/db       → 0.1.0, 0.2.0, ...
 ```
 
 Apps follow semver loosely — main milestones:
@@ -69,7 +69,7 @@ Apps follow semver loosely — main milestones:
 ### PR Process
 
 ```
-1. Branch from dev
+1. Branch from main
 2. Write code + tests
 3. Self-review diff
 4. openspec validate (if specs changed)
@@ -78,7 +78,7 @@ Apps follow semver loosely — main milestones:
    - pnpm test
    - pnpm build
    - pnpm lint
-6. Create PR → dev
+6. Create PR → main
 7. Review (or self-review for solo work)
 8. Squash merge
 9. Delete branch
@@ -636,7 +636,7 @@ export function listProjectsOptions(params?: ListProjectsParams) {
 }
 
 // usage in component — zero manual typing
-import { listProjectsOptions } from '@rapoport/api/generated'
+import { listProjectsOptions } from '@repo/api/generated'
 
 function ProjectList() {
   const { data } = useQuery(listProjectsOptions({ status: 'active' }))
@@ -667,7 +667,7 @@ the right query keys.
 // lib/realtime.ts
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { supabase } from '@rapoport/db'
+import { supabase } from '@repo/db'
 
 export function useRealtimeInvalidation(
   table: string,
@@ -747,7 +747,7 @@ Every data operation passes through the same pipeline — no shortcuts.
             │ HTTP request          │ WebSocket
             ▼                       │
 ┌─────────────────────────────────────────────────────────┐
-│  NestJS API (Railway)                                   │
+│  NestJS API (Railway) (planned — not yet implemented)   │
 │  ┌──────────────────┐  ┌─────────────────────────────┐  │
 │  │ Controller       │  │ Redis Cache                 │  │
 │  │ • validate input │  │ • check cache first         │  │
@@ -869,7 +869,7 @@ async updateProject(id: string, data: UpdateProjectDto) {
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { supabase } from '@rapoport/db';
+import { supabase } from '@repo/db';
 
 type SyncStrategy = 'invalidate' | 'patch';
 
@@ -1232,7 +1232,7 @@ Future:  Railway worker with proper queue (BullMQ/pg-boss)
 7. delivery_id UNIQUE constraint prevents duplicate processing.
 ```
 
-### API Documentation & Testing
+### API Documentation & Testing (planned — NestJS not yet implemented)
 
 **Swagger UI is the primary API documentation and testing tool.**
 
@@ -2320,7 +2320,7 @@ One source of truth for how a product looks, feels, and speaks.
 
 ---
 
-## Design System — @rapoport/ui
+## Design System — @repo/ui
 
 ### Storybook as the Design Tool
 
@@ -2405,8 +2405,8 @@ What shadcn does NOT provide (we build):
     "cssVariables": true
   },
   "aliases": {
-    "components": "@rapoport/ui/components",
-    "utils": "@rapoport/ui/lib/utils"
+    "components": "@repo/ui/components",
+    "utils": "@repo/ui/lib/utils"
   }
 }
 ```
@@ -2561,7 +2561,7 @@ Only the inner content changes.**
 
 import { motion, AnimatePresence } from 'motion/react';
 import { ANIMATION } from '../lib/animation-tokens';
-import { useEntityViewConfig } from '@rapoport/db';
+import { useEntityViewConfig } from '@repo/db';
 
 type ViewType = 'inline' | 'option' | 'row' | 'card' | 'detail';
 
@@ -2751,7 +2751,7 @@ Both managed in Studio UI.
                        │ SQL query (with JOINs, aggregates)
                        ▼
 ┌─────────────────────────────────────────────────────────┐
-│ 2. API SERVICE (NestJS on Railway)                      │
+│ 2. API SERVICE (NestJS on Railway) (planned)            │
 │    Controller validates request                          │
 │    Service runs query → gets raw rows                    │
 │    DTO shapes the response for the consumer              │
@@ -2842,7 +2842,7 @@ They are pure functions — no side effects, no API calls, easy to test.
 ```typescript
 // packages/shared/src/adapters/project-adapter.ts
 
-import type { ProjectDTO } from '@rapoport/api';
+import type { ProjectDTO } from '@repo/api';
 import type { ProjectViewModel } from '../view-models/project';
 
 /**
@@ -3860,8 +3860,8 @@ Entity View System handles:
 ```typescript
 // packages/shared/src/hooks/use-ab-view.ts
 
-import { useFeatureFlag } from '@rapoport/analytics'; // PostHog wrapper
-import { useEntityViewConfig } from '@rapoport/db';
+import { useFeatureFlag } from '@repo/analytics'; // PostHog wrapper
+import { useEntityViewConfig } from '@repo/db';
 
 /**
  * useABView — loads the right view config based on active experiment.
@@ -4052,7 +4052,7 @@ THREE places, enforced at different stages:
 
 #### Per-component a11y checklist
 
-**Every component in @rapoport/ui must pass this before merge:**
+**Every component in @repo/ui must pass this before merge:**
 
 ```
 ELEMENTS (Button, Input, Badge, etc.):
@@ -4438,7 +4438,7 @@ Entity       → a named thing in the domain with visual form
 
 Package      → shared library in the monorepo
                Lives in: packages/{name}/
-               Example: @rapoport/ui, @rapoport/auth, @rapoport/db
+               Example: @repo/ui, @repo/auth, @repo/db
 
 Spec         → OpenSpec markdown describing a domain
                Lives in: /openspec/specs/{domain}/spec.md
@@ -4449,7 +4449,7 @@ When talking about the system:
 - "Add a field to the **projects domain**" → update spec
 - "Add a type to the **projects module**" → write TypeScript
 - "Create a **Project entity**" → define its 5 views + brand DNA
-- "Update the **auth package**" → change @rapoport/auth code
+- "Update the **auth package**" → change @repo/auth code
 
 ---
 
@@ -4466,7 +4466,7 @@ DB tables:   snake_case      → organization_members
 DB columns:  snake_case      → created_at
 URLs:        kebab-case      → /studio/projects/dentour-platform
 Query keys:  camelCase array → ['projects', projectId, 'specs']
-Packages:    @rapoport/name  → @rapoport/auth
+Packages:    @repo/name  → @repo/auth
 ```
 
 ---
@@ -4541,7 +4541,7 @@ Banner:        → connection lost, API down (top of page)
 ```
 
 Each error component receives `message_key` and resolves
-the translation via `@rapoport/i18n`.
+the translation via `@repo/i18n`.
 
 ### Retry Strategy
 
@@ -4558,48 +4558,50 @@ TanStack Query handles this via `retry` and `retryDelay` config.
 
 ## i18n
 
-### Package: @rapoport/i18n
+### Package: @repo/i18n
 
+Library: **next-intl** v4.9.0
 Languages: EN (default), RU, HE.
 HE = RTL layout.
+Locale prefix: always (e.g. `/en/about`, `/ru/about`, `/he/about`).
 
 ```
 packages/i18n/
-  locales/
+  messages/
     en/
       common.json        → shared strings (buttons, labels)
-      errors.json        → error messages by scope
-      projects.json      → domain-specific translations
-      auth.json
+      web.json           → web app strings
     ru/
-      ...
+      common.json
+      web.json
     he/
-      ...
-  index.ts              → exports t(), locale config
+      common.json
+      web.json
+  src/
+    config.ts            → locales, defaultLocale, categories
+    routing.ts           → defineRouting (next-intl/routing)
+    navigation.ts        → createNavigation (next-intl/navigation)
+    index.ts             → re-exports
 ```
 
-### Translation keys are scoped by domain:
+### Exports
 
-```json
-{
-  "errors.projects.not_found": "Project not found",
-  "errors.auth.session_expired": "Session expired, please log in",
-  "projects.status.draft": "Draft",
-  "projects.status.building": "In Progress",
-  "common.actions.save": "Save",
-  "common.actions.cancel": "Cancel"
-}
+```
+@repo/i18n             → src/index.ts
+@repo/i18n/routing     → src/routing.ts
+@repo/i18n/navigation  → src/navigation.ts
+@repo/i18n/config      → src/config.ts
+@repo/i18n/messages/*  → messages/*
 ```
 
 ### Rules
 
 ```
-1. UI never shows hardcoded text — always t('key')
-2. Error handler sends message_key → UI resolves via t()
-3. Muse matches client language from first message (auto-detect)
-4. RTL: use logical CSS properties (margin-inline-start, not margin-left)
-5. Date/number formatting: Intl API (Intl.DateTimeFormat, Intl.NumberFormat)
-6. Pluralization: ICU message format where needed
+1. UI never shows hardcoded text — always use next-intl useTranslations()
+2. RTL: use logical CSS properties (margin-inline-start, not margin-left)
+3. Date/number formatting: Intl API (Intl.DateTimeFormat, Intl.NumberFormat)
+4. Pluralization: ICU message format where needed
+5. New message namespaces: add JSON file per locale, update exports
 ```
 
 ---
@@ -4773,25 +4775,25 @@ Maps to: specs/auth/secrets-registry.md
 ### Dependency Direction
 
 ```
-apps/web       → can import any @rapoport/* package
-apps/studio    → can import any @rapoport/* package
+apps/web       → can import any @repo/* package
+apps/studio    → can import any @repo/* package
 
-@rapoport/ui   → NEVER imports db, auth, ai, api
+@repo/ui   → NEVER imports db, auth, ai, api
                   (pure components, no business logic)
 
-@rapoport/auth → can import db
+@repo/auth → can import db
                   NEVER imports ui, ai, api
 
-@rapoport/db   → NEVER imports anything else
+@repo/db   → NEVER imports anything else
                   (lowest level — types + client only)
 
-@rapoport/ai   → can import db
+@repo/ai   → can import db (planned)
                   NEVER imports ui, auth
 
-@rapoport/api  → can import db, auth
+@repo/api  → can import db, auth (planned)
                   NEVER imports ui
 
-@rapoport/i18n → NEVER imports anything else
+@repo/i18n → NEVER imports anything else
                   (standalone — locales + t function)
 ```
 
@@ -4813,13 +4815,14 @@ Never go sideways. Never go up.
 ### Package Responsibilities
 
 ```
-@rapoport/db     → Supabase client, generated types, RLS helpers
-@rapoport/ui     → Design system, Entity Views, shadcn/ui components
-@rapoport/auth   → Auth logic, session, access control, middleware
-@rapoport/ai     → Muse agent, prompts, mode switching, streaming
-@rapoport/api    → OpenAPI spec, generated client, query hooks
-@rapoport/i18n   → Translations, locale detection, RTL support
-@rapoport/config → Shared configs (ESLint, TypeScript, Tailwind)
+@repo/auth   → Auth logic, session, access control, middleware
+@repo/config → Environment and service configuration (env vars, Supabase, Claude, Cloudflare, Linear, GitHub, Google)
+@repo/db     → Supabase client, generated types, RLS helpers
+@repo/i18n   → Translations (next-intl), locale detection, RTL support
+@repo/openspec → Specs, conventions, project identity
+@repo/ui     → Design system, Entity Views, shadcn/ui components
+@repo/ai     → Muse agent, prompts, mode switching, streaming (planned)
+@repo/api    → OpenAPI spec, generated client, query hooks (planned)
 ```
 
 ---
@@ -4917,7 +4920,7 @@ Cloudflare
   ├── SSL           → automatic certificates
   └── Security      → DDoS, WAF, rate limiting
 
-Railway
+Railway (planned — not yet implemented)
   ├── API services  → NestJS backends
   ├── Redis         → server-side cache + sessions + queues
   ├── Workers       → background jobs, queues
@@ -4943,7 +4946,7 @@ apps/studio/             → rapoport-studio            studio.pavelrapoport.com
 packages/ui/.storybook/  → rapoport-ui                ui.pavelrapoport.com
 apps/client-portal/      → rapoport-portal            portal.pavelrapoport.com (future)
 
-services/api/            → Railway service             api.pavelrapoport.com
+services/api/            → Railway service             api.pavelrapoport.com (planned)
 ```
 
 **Per-project Cloudflare Pages config:**
@@ -4970,7 +4973,7 @@ Project: rapoport-studio
 
 Project: rapoport-ui (Storybook)
   Root directory:        packages/ui
-  Build command:         cd ../.. && pnpm turbo build-storybook --filter=@rapoport/ui
+  Build command:         cd ../.. && pnpm turbo build-storybook --filter=@repo/ui
   Build output:          packages/ui/storybook-static
   Build watch paths:
     Include: packages/ui/**
@@ -5016,7 +5019,7 @@ Layer 1: Cloudflare Edge (CDN)
                       (cacheable reads — projects list, specs)
   API mutation:     → no-store (POST, PATCH, DELETE)
 
-Layer 2: Redis (Railway, server-side)
+Layer 2: Redis (Railway, server-side) (planned)
   API response cache for expensive queries:
     Projects list with entity counts     → TTL 60s
     Dashboard aggregations               → TTL 30s
@@ -5044,7 +5047,7 @@ Layer 4: Supabase Realtime → invalidates Layer 3
   → API checks Redis (Layer 2) → if miss, queries PostgreSQL
 ```
 
-**Redis setup (Railway):**
+**Redis setup (Railway) (planned):**
 
 ```
 Service:     Railway Redis plugin (managed)
@@ -5098,7 +5101,7 @@ Examples:
 Turborepo handles all builds:
   pnpm turbo build --filter=web       → builds web + dependencies
   pnpm turbo build --filter=studio    → builds studio + dependencies
-  pnpm turbo build --filter=api       → builds API service
+  pnpm turbo build --filter=api       → builds API service (planned)
 
 Build caching:
   Local:       .turbo/ directory (gitignored)
@@ -5106,52 +5109,45 @@ Build caching:
   Result:      unchanged packages skip build entirely
 
 Incremental builds:
-  Change @rapoport/ui → rebuilds web + studio (both depend on ui)
+  Change @repo/ui → rebuilds web + studio (both depend on ui)
   Change apps/web     → rebuilds web only
   Change apps/studio  → rebuilds studio only
-  Change services/api → rebuilds api only
+  Change services/api → rebuilds api only (planned)
 ```
 
 ### Deployment Flow
 
 ```
-Push to dev branch:
+Push to feature branch / PR to main:
   → GitHub Action runs turbo build for affected apps
   → Cloudflare Pages: preview deploy (unique URL per PR)
-  → Railway: preview environment (if API changed)
-
-Merge to staging:
-  → Cloudflare Pages: staging deploy
-  → Railway: staging deploy
-  → Playwright E2E tests run against staging
 
 Merge to main:
   → Cloudflare Pages: production deploy (instant)
-  → Railway: production deploy
-  → Rollback: one click in Cloudflare / Railway dashboard
+  → Rollback: one click in Cloudflare dashboard
+
+Future (when dev/staging branches exist):
+  → Railway: preview/staging environments for API (planned)
+  → Playwright E2E tests against staging
 ```
 
 ### Monorepo Directory Structure
 
 ```
-rapoport/
+pavelrapoport.com/
   ├── apps/
-  │     ├── web/              → pavelrapoport.com (Next.js)
-  │     └── studio/           → studio.pavelrapoport.com (Next.js)
-  │
-  ├── services/
-  │     └── api/              → api.pavelrapoport.com (NestJS, Railway)
+  │     ├── web/              → pavelrapoport.com (Next.js 16)
+  │     └── studio/           → studio.pavelrapoport.com (Next.js 16)
   │
   ├── packages/
-  │     ├── ui/               → @rapoport/ui (design system)
-  │     ├── db/               → @rapoport/db (Supabase client)
-  │     ├── auth/             → @rapoport/auth (access control)
-  │     ├── ai/               → @rapoport/ai (Muse agent)
-  │     ├── api/              → @rapoport/api (OpenAPI client, generated)
-  │     ├── i18n/             → @rapoport/i18n (translations)
-  │     └── config/           → @rapoport/config (shared configs)
+  │     ├── auth/             → @repo/auth (access control)
+  │     ├── config/           → @repo/config (env and service configuration)
+  │     ├── db/               → @repo/db (Supabase client)
+  │     ├── i18n/             → @repo/i18n (next-intl, translations)
+  │     ├── openspec/         → specs, identity, seed, conventions
+  │     └── ui/               → @repo/ui (design system)
   │
-  ├── openspec/               → specs, identity, seed, conventions
+  ├── docs/                   → PRD, brand voice, career analysis
   ├── turbo.json
   ├── pnpm-workspace.yaml
   └── package.json
@@ -5164,7 +5160,7 @@ Apps:        follow semver loosely (0.x = building, 1.0 = launch)
              No npm publish — deployed directly.
 
 Packages:    versioned independently via changesets
-             @rapoport/ui@0.3.0 can depend on @rapoport/db@0.1.0
+             @repo/ui@0.3.0 can depend on @repo/db@0.1.0
              pnpm changeset → bump → publish (internal only)
 
 Lock:        pnpm-lock.yaml committed, always.
@@ -5174,7 +5170,7 @@ Node.js:     pinned in .nvmrc and package.json engines
              Currently: >= 20.19.0
 ```
 
-### API as Separate Service
+### API as Separate Service (planned — not yet implemented)
 
 ```
 API is NEVER inside the Next.js app.
@@ -5210,7 +5206,7 @@ All proxied through Cloudflare (CNAME, orange cloud ON).
 7. Environment variables: per Pages project, per environment
 ```
 
-**Railway → project:**
+**Railway → project (planned):**
 
 ```
 1. Create Railway project per API service
@@ -5581,7 +5577,7 @@ Pattern:
 
 Rules:
   - One schema per form, colocated with the form component
-  - Shared schemas in @rapoport/db (same as API validation)
+  - Shared schemas in @repo/db (same as API validation)
   - Never use uncontrolled inputs
   - Always show inline errors (not toast)
   - Submit button disabled while submitting

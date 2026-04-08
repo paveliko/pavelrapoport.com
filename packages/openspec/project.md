@@ -54,17 +54,16 @@ OpenSpec — shipping a large-scale product one prompt at a time.
 ## Tech Stack
 
 **Frontend:**
-React 19, Next.js 15 (App Router), TypeScript, Tailwind CSS,
+React 19, Next.js 16 (App Router), TypeScript, Tailwind CSS,
 D3.js, SVG, Canvas, XState
 
 **Backend:**
-NestJS, Node.js, Supabase (PostgreSQL, Auth, RLS, Realtime),
-Redis (server-side cache, sessions, queues)
+Supabase (PostgreSQL, Auth, RLS, Realtime),
+NestJS + Redis (planned — not yet implemented)
 
 **Infrastructure:**
 Turborepo monorepo, pnpm, Cloudflare Pages (frontends),
-Railway (API + Redis + workers), npm packages with
-independent versioning
+Railway (planned — API + Redis + workers)
 
 **AI:**
 Claude (Opus), MCP servers, RAG pipelines, XState agents,
@@ -100,48 +99,48 @@ apps/
       finance/
 
 packages/
-  @rapoport/ui            → design system (shadcn/ui components)
-  @rapoport/db            → Supabase client, types, migrations
-  @rapoport/ai            → agent logic, prompts, mode switching
-  @rapoport/auth          → authentication, roles, permissions
-  @rapoport/config        → connection configs, secrets management
-  @rapoport/domain-map    → interactive entity graph (React Flow)
-                        standalone-extractable
+  @repo/auth          → authentication, roles, permissions
+  @repo/config        → env and service configuration
+  @repo/db            → Supabase client, types, migrations
+  @repo/i18n          → internationalization (next-intl)
+  @repo/openspec      → specs, conventions, project identity
+  @repo/ui            → design system (shadcn/ui components)
+  @repo/ai            → agent logic, prompts, mode switching (planned)
+  @repo/api           → OpenAPI client, generated (planned)
+  @repo/domain-map    → interactive entity graph (planned)
 ```
 
-### @rapoport/ui
+### @repo/ui
 
 Built on shadcn/ui. All components live here, never in apps.
 Both web and studio consume from the same library.
 
-### @rapoport/db
+### @repo/db
 
 Supabase client, generated types, RLS policies, migrations.
 Single source of truth for all database access.
 
-### @rapoport/ai
+### @repo/ai (planned)
 
 Agent core: mode definitions (Canvas, Scout, Architect, Builder),
 system prompts, structured output schemas, model selection,
 token tracking. Consumed by both apps and by CLI tools.
 
-### @rapoport/auth
+### @repo/auth
 
 Supabase Auth wrapper, role definitions (owner, client, network,
 public), permission checks, middleware. Shared across apps.
 
-### @rapoport/config
+### @repo/config
 
-Connection management layer for all 21 integrations:
-- `getConnection(type, projectId?)` → config + status
-- `setConnection(type, projectId?, fields)` → encrypted store
-- `validateConnection(type, config)` → ok | error
-- `listConnections(projectId?)` → all active connections
+Environment and service configuration. Zod-validated env schema
+with modules for each service:
+- `env.ts` — validated env vars (Supabase, Claude, Cloudflare, Linear, GitHub, Google)
+- `supabase.ts`, `claude.ts`, `cloudflare.ts`, `linear.ts`, `github.ts`, `google.ts`
 
-Secrets stored in Supabase (encrypted) or Cloudflare secrets.
-Package abstracts the source — app doesn't care where keys live.
+Future: connection management layer for integrations (planned).
 
-### @rapoport/domain-map
+### @repo/domain-map (planned)
 
 React Flow-based entity graph visualizer. Renders domain maps
 from OpenSpec data. Designed for standalone extraction as

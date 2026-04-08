@@ -117,7 +117,7 @@ What goes to client:
   - Creative assets (if paid for)
 
 What stays with Pavel:
-  - Platform components (@rapoport/ui, @rapoport/auth, etc.)
+  - Platform components (@repo/ui, @repo/auth, etc.)
   - General architectural patterns
   - OpenSpec templates and workflows
   - Knowledge and experience gained
@@ -154,7 +154,7 @@ Idea: "AI scans legacy code → migration plan"
 
 ```
 Idea: "Domain Map as standalone visualizer"
-  → Build inside platform (@rapoport/domain-map)
+  → Build inside platform (@repo/domain-map)
   → Extract as separate product
   → SaaS or open-source with paid tier
   → IP: 100% Pavel's

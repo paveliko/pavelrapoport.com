@@ -12,7 +12,7 @@ Pavel (admin), registered users, anonymous visitors.
 identity system. Auth must work seamlessly across
 pavelrapoport.com and studio.pavelrapoport.com with a
 single session. All auth logic — hooks, guards, middleware,
-redirects — lives in `@rapoport/auth`. No auth code in apps.
+redirects — lives in `@repo/auth`. No auth code in apps.
 
 ## Data Architecture
 
@@ -132,7 +132,7 @@ Public:
   modify it
 - Auth events logged — sign in, sign out, password reset
 
-### Layer 4: Middleware (@rapoport/auth)
+### Layer 4: Middleware (@repo/auth)
 
 - Route protection — every route checked before render
 - Role check — admin/user at middleware level
@@ -669,7 +669,7 @@ The system SHALL log all authentication and authorization events.
 - **THEN** the event is logged with timestamp, user_id,
   IP, action, success/failure
 
-## Package: @rapoport/auth
+## Package: @repo/auth
 
 All auth logic lives here. Apps import, never implement.
 
@@ -704,9 +704,9 @@ All auth logic lives here. Apps import, never implement.
 - `COOKIE_DOMAIN` → `.pavelrapoport.com`
 - `REDIRECT_DEFAULTS` → { admin, client, network, user }
 
-### What is NOT in @rapoport/auth
+### What is NOT in @repo/auth
 
-- **Login UI** — forms live in `@rapoport/ui`
+- **Login UI** — forms live in `@repo/ui`
 - **Page layouts** — login page layout lives in the app
 - **Business logic** — domain-level permissions are domain logic
 
@@ -725,5 +725,5 @@ All auth logic lives here. Apps import, never implement.
 - `clients` — client profile extends User
 - `network` — network member profile extends User
 - `integrations` — WhatsApp Business API for WhatsApp login
-- `@rapoport/ui` — auth form components
-- `@rapoport/db` — Supabase client, triggers, RLS policies
+- `@repo/ui` — auth form components
+- `@repo/db` — Supabase client, triggers, RLS policies

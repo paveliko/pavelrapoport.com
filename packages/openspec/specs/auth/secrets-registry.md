@@ -59,14 +59,14 @@ System uses keys on their behalf.
 
 | Key | Type | Where stored | Client-safe? | Used by |
 |-----|------|-------------|-------------|---------|
-| `COOKIE_SIGNING_SECRET` | secret | Cloudflare secret | NO | @rapoport/auth |
-| `COOKIE_DOMAIN` | config | env | YES | @rapoport/auth |
+| `COOKIE_SIGNING_SECRET` | secret | Cloudflare secret | NO | @repo/auth |
+| `COOKIE_DOMAIN` | config | env | YES | @repo/auth |
 
 ### Encryption
 
 | Key | Type | Where stored | Client-safe? | Used by |
 |-----|------|-------------|-------------|---------|
-| `ENCRYPTION_KEY` | AES-256 key | Cloudflare secret | NO | @rapoport/config |
+| `ENCRYPTION_KEY` | AES-256 key | Cloudflare secret | NO | @repo/config |
 
 Used to encrypt all integration connection configs at rest
 in Supabase. If compromised, all integration keys are exposed.
@@ -133,7 +133,7 @@ Summary by priority:
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://xxx.supabase.co` | both apps |
 | `NEXT_PUBLIC_SITE_URL` | `https://pavelrapoport.com` | web app |
 | `NEXT_PUBLIC_STUDIO_URL` | `https://studio.pavelrapoport.com` | studio app |
-| `COOKIE_DOMAIN` | `.pavelrapoport.com` | @rapoport/auth |
+| `COOKIE_DOMAIN` | `.pavelrapoport.com` | @repo/auth |
 | `NODE_ENV` | `production` | both apps |
 
 ---
@@ -153,7 +153,7 @@ Production:
   ├── Platform secrets → Cloudflare secrets (encrypted, server-only)
   └── Integration secrets → Supabase table (AES-256 encrypted)
         ├── encrypted by ENCRYPTION_KEY
-        ├── decrypted only in @rapoport/config at runtime
+        ├── decrypted only in @repo/config at runtime
         └── never logged, never in client bundle
 ```
 
