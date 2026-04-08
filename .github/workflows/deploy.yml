@@ -57,8 +57,14 @@ jobs:
           INFISICAL_UNIVERSAL_AUTH_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
           INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
         run: |
+          set -euo pipefail
           test -n "$INFISICAL_UNIVERSAL_AUTH_CLIENT_ID" || { echo "::error::Missing INFISICAL_CLIENT_ID GitHub secret"; exit 1; }
           test -n "$INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET" || { echo "::error::Missing INFISICAL_CLIENT_SECRET GitHub secret"; exit 1; }
+
+          infisical login --method=universal-auth \
+            --client-id="$INFISICAL_UNIVERSAL_AUTH_CLIENT_ID" \
+            --client-secret="$INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET" \
+            --silent
 
           infisical export \
             --projectId="1262d7b5-45e7-4fc6-9545-85fc60e42a47" \
@@ -125,8 +131,14 @@ jobs:
           INFISICAL_UNIVERSAL_AUTH_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
           INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
         run: |
+          set -euo pipefail
           test -n "$INFISICAL_UNIVERSAL_AUTH_CLIENT_ID" || { echo "::error::Missing INFISICAL_CLIENT_ID GitHub secret"; exit 1; }
           test -n "$INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET" || { echo "::error::Missing INFISICAL_CLIENT_SECRET GitHub secret"; exit 1; }
+
+          infisical login --method=universal-auth \
+            --client-id="$INFISICAL_UNIVERSAL_AUTH_CLIENT_ID" \
+            --client-secret="$INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET" \
+            --silent
 
           infisical export \
             --projectId="1262d7b5-45e7-4fc6-9545-85fc60e42a47" \
