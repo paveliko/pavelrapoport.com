@@ -50,8 +50,9 @@ jobs:
 
       - name: Install Infisical CLI
         run: |
-          curl -1sLf 'https://artifacts.infisical.com/repos/setup.deb.sh' | sudo -E bash
-          sudo apt-get update && sudo apt-get install -y infisical
+          set -euo pipefail
+          curl -1sLf 'https://raw.githubusercontent.com/Infisical/infisical/main/scripts/install.sh' | bash
+          infisical --version
 
       - name: Load secrets from Infisical
         env:
@@ -127,8 +128,9 @@ jobs:
 
       - name: Install Infisical CLI
         run: |
-          curl -1sLf 'https://artifacts.infisical.com/repos/setup.deb.sh' | sudo -E bash
-          sudo apt-get update && sudo apt-get install -y infisical
+          set -euo pipefail
+          curl -1sLf 'https://raw.githubusercontent.com/Infisical/infisical/main/scripts/install.sh' | bash
+          infisical --version
 
       - name: Load secrets from Infisical
         env:
