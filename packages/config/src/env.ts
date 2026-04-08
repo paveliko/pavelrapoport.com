@@ -1,32 +1,32 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  // Supabase
+  // Supabase (required)
   SUPABASE_URL: z.string().url(),
   SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   SUPABASE_DB_PASSWORD: z.string().min(1),
 
-  // Claude
+  // Claude (required)
   CLAUDE_API_KEY: z.string().min(1),
 
-  // Cloudflare
+  // Cloudflare (required)
   CLOUDFLARE_ACCOUNT_ID: z.string().min(1),
   CLOUDFLARE_API_TOKEN: z.string().min(1),
-  CLOUDFLARE_ZONE_ID: z.string().min(1),
+  CLOUDFLARE_ZONE_ID: z.string().min(1).optional(),
 
-  // Linear
-  LINEAR_API_KEY: z.string().min(1),
-  LINEAR_WEBHOOK_SECRET: z.string().min(1),
+  // Linear (optional — not needed for MVP)
+  LINEAR_API_KEY: z.string().min(1).optional(),
+  LINEAR_WEBHOOK_SECRET: z.string().min(1).optional(),
 
-  // GitHub
-  GITHUB_TOKEN: z.string().min(1),
-  GITHUB_WEBHOOK_SECRET: z.string().min(1),
+  // GitHub (optional — not needed for MVP)
+  GITHUB_TOKEN: z.string().min(1).optional(),
+  GITHUB_WEBHOOK_SECRET: z.string().min(1).optional(),
 
-  // Google
-  GOOGLE_WORKSPACE_ADMIN: z.string().email(),
-  GOOGLE_OAUTH_CLIENT_ID: z.string().min(1),
-  GOOGLE_OAUTH_CLIENT_SECRET: z.string().min(1),
+  // Google (optional — not needed for MVP)
+  GOOGLE_WORKSPACE_ADMIN: z.string().email().optional(),
+  GOOGLE_OAUTH_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
