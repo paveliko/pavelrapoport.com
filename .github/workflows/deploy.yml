@@ -56,7 +56,7 @@ jobs:
           INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
         run: |
           infisical export \
-            --projectId="pavelrapoport-com" \
+            --projectId="23aeaa96-1a5f-4ab3-80a8-06123dfe3e68" \
             --env="${{ github.ref_name == 'main' && 'prod' || github.ref_name }}" \
             --format=dotenv \
           | sed 's/\r$//' >> "$GITHUB_ENV"
@@ -82,13 +82,14 @@ jobs:
       - name: Build (OpenNext → Cloudflare)
         run: pnpm --filter @repo/web exec opennextjs-cloudflare build
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Workers
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/.open-next/assets --project-name=rapoport-web --branch=${{ github.ref_name }}
+          workingDirectory: apps/web
+          command: deploy
 
   deploy-studio:
     name: Deploy Studio
@@ -115,7 +116,7 @@ jobs:
           INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
         run: |
           infisical export \
-            --projectId="pavelrapoport-com" \
+            --projectId="23aeaa96-1a5f-4ab3-80a8-06123dfe3e68" \
             --env="${{ github.ref_name == 'main' && 'prod' || github.ref_name }}" \
             --format=dotenv \
           | sed 's/\r$//' >> "$GITHUB_ENV"
@@ -135,13 +136,17 @@ jobs:
       - name: Turbo Cache
         uses: rharkor/caching-for-turbo@v1.7
 
-      - name: Build
+      - name: Build (Next.js)
         run: pnpm turbo build --filter=@repo/studio
 
-      - name: Deploy to Cloudflare Pages
+      - name: Build (OpenNext → Cloudflare)
+        run: pnpm --filter @repo/studio exec opennextjs-cloudflare build
+
+      - name: Deploy to Cloudflare Workers
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/studio/out --project-name=rapoport-studio --branch=${{ github.ref_name }}
+          workingDirectory: apps/studio
+          command: deploy
