@@ -45,16 +45,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Load secrets from 1Password
-        uses: 1password/load-secrets-action@v2
+      - name: Load secrets from Infisical
+        uses: infisical/cli-action@v1
         with:
-          export-env: true
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          CLOUDFLARE_API_TOKEN: op://CI/cloudflare/api-token
-          CLOUDFLARE_ACCOUNT_ID: op://CI/cloudflare/account-id
-          SUPABASE_URL: op://CI/supabase/url
-          SUPABASE_ANON_KEY: op://CI/supabase/anon-key
+          client-id: ${{ secrets.INFISICAL_CLIENT_ID }}
+          client-secret: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          project-slug: pavelrapoport-com
+          env-slug: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+          export-type: env
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -96,16 +94,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Load secrets from 1Password
-        uses: 1password/load-secrets-action@v2
+      - name: Load secrets from Infisical
+        uses: infisical/cli-action@v1
         with:
-          export-env: true
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          CLOUDFLARE_API_TOKEN: op://CI/cloudflare/api-token
-          CLOUDFLARE_ACCOUNT_ID: op://CI/cloudflare/account-id
-          SUPABASE_URL: op://CI/supabase/url
-          SUPABASE_ANON_KEY: op://CI/supabase/anon-key
+          client-id: ${{ secrets.INFISICAL_CLIENT_ID }}
+          client-secret: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          project-slug: pavelrapoport-com
+          env-slug: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+          export-type: env
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

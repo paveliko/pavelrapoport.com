@@ -4759,10 +4759,9 @@ Prefix rule:
 ### Where secrets live
 
 ```
-Local dev:       .env.local (gitignored)
+Local dev:       infisical run (pulls from Infisical dev env)
 Cloudflare:      Wrangler secrets / Pages env vars
-Railway:         Environment variables in dashboard
-CI (GitHub):     Repository secrets
+CI (GitHub):     Infisical Machine Identity via infisical/cli-action
 
 Maps to: specs/auth/secrets-registry.md
 ```

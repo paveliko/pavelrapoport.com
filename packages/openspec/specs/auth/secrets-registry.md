@@ -144,7 +144,7 @@ Summary by priority:
 Where secrets live by environment:
 
 Development:
-  └── .env.local (git-ignored, each dev has their own)
+  └── Infisical (dev environment, pulled via `infisical run`)
 
 Staging:
   └── Cloudflare Pages env variables (encrypted)
