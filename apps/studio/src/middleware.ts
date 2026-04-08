@@ -1,6 +1,6 @@
 import { createAuthProxy } from "@repo/auth/proxy";
 
-export const proxy = createAuthProxy({
+export const middleware = createAuthProxy({
   publicRoutes: ["/login", "/auth/callback"],
   loginUrl: "/login",
 });
