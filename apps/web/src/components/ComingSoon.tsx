@@ -1,28 +1,12 @@
-import { type Locale } from "@/lib/i18n";
+"use client";
 
-const copy = {
-  ru: {
-    status: "СТАТУС: В РАЗРАБОТКЕ",
-    heading: "Проект собирается",
-    description:
-      "Архитектура определена. Фундамент заложен. Сейчас идёт сборка — каждый компонент встаёт на своё место.",
-    stack: ["Next.js 15", "Tailwind CSS 4", "MDX", "Cloudflare Pages"],
-    categories: ["/build", "/signal", "/layers", "/notes"],
-    soon: "Скоро здесь появятся записи",
-  },
-  en: {
-    status: "STATUS: UNDER CONSTRUCTION",
-    heading: "Project assembling",
-    description:
-      "Architecture defined. Foundation laid. Now building — every component falling into place.",
-    stack: ["Next.js 15", "Tailwind CSS 4", "MDX", "Cloudflare Pages"],
-    categories: ["/build", "/signal", "/layers", "/notes"],
-    soon: "Posts coming soon",
-  },
-} as const;
+import { useTranslations } from "next-intl";
 
-export function ComingSoon({ lang }: { lang: Locale }) {
-  const t = copy[lang];
+const stack = ["Next.js 16", "Tailwind CSS 4", "MDX", "Cloudflare Pages"];
+const sections = ["/build", "/signal", "/layers", "/notes"];
+
+export function ComingSoon() {
+  const t = useTranslations("web.comingSoon");
 
   return (
     <div className="flex-1 flex items-center justify-center py-unit-4">
@@ -40,7 +24,7 @@ export function ComingSoon({ lang }: { lang: Locale }) {
 
           {/* Status line */}
           <div className="font-mono text-[10px] tracking-[0.2em] text-accent mb-6">
-            {t.status}
+            {t("status")}
           </div>
 
           {/* Blueprint line */}
@@ -48,12 +32,12 @@ export function ComingSoon({ lang }: { lang: Locale }) {
 
           {/* Heading */}
           <h1 className="font-sans text-[2rem] font-semibold leading-tight text-ink mb-3">
-            {t.heading}
+            {t("heading")}
           </h1>
 
           {/* Description */}
           <p className="font-serif text-base text-ink-light leading-[1.7] mb-unit-2">
-            {t.description}
+            {t("description")}
           </p>
 
           {/* Grid divider */}
@@ -65,7 +49,7 @@ export function ComingSoon({ lang }: { lang: Locale }) {
               stack
             </div>
             <div className="flex flex-wrap gap-2">
-              {t.stack.map((tech) => (
+              {stack.map((tech) => (
                 <span
                   key={tech}
                   className="font-mono text-xs text-ink-light border border-grid px-2 py-1"
@@ -82,7 +66,7 @@ export function ComingSoon({ lang }: { lang: Locale }) {
               sections
             </div>
             <div className="flex gap-4">
-              {t.categories.map((cat) => (
+              {sections.map((cat) => (
                 <span
                   key={cat}
                   className="font-mono text-xs text-blueprint"
@@ -102,7 +86,7 @@ export function ComingSoon({ lang }: { lang: Locale }) {
               <div className="absolute inset-[3px] bg-blueprint" />
             </div>
             <span className="font-mono text-xs text-muted">
-              {t.soon}
+              {t("soon")}
             </span>
           </div>
 

@@ -3,10 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./routing": "./src/routing.ts",
+    "./navigation": "./src/navigation.ts",
+    "./config": "./src/config.ts",
+    "./messages/*": "./messages/*"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next-intl": "^4.9.0"
   },
   "devDependencies": {
     "typescript": "^5"

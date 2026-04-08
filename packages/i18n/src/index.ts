@@ -1,1 +1,2 @@
-// @repo/i18n — internationalization utilities
+export { locales, defaultLocale, categories } from "./config";
+export type { Locale, Category } from "./config";

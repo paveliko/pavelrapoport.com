@@ -1,0 +1,10 @@
+{
+  "title": "Senior Frontend Engineer",
+  "footer": "Pavel Rapoport",
+  "comingSoon": {
+    "status": "STATUS: UNDER CONSTRUCTION",
+    "heading": "Project assembling",
+    "description": "Architecture defined. Foundation laid. Now building — every component falling into place.",
+    "soon": "Posts coming soon"
+  }
+}
