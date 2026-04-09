@@ -537,6 +537,239 @@ AI Listener → classify → extract entities → create draft
 
 ---
 
+## Design System Laws
+
+> These are laws, not guidelines. Every agent, every developer
+> follows them without exception. Violations are bugs.
+
+### 1. Single Source of Truth for Tokens
+
+**All visual values are CSS variables defined in
+`apps/web/src/app/globals.css`.** No exceptions.
+
+```
+Source of truth:
+  apps/web/src/app/globals.css
+    :root { }                    → light mode token values
+    @media (prefers-color-scheme: dark) { }  → dark mode values
+    @theme inline { }            → bridges CSS vars to Tailwind utilities
+
+Token categories:
+  --color-*          → colors (canvas, ink, blueprint, accent, etc.)
+  --grid-line-*      → grid overlay opacities (micro, base, major)
+  --font-*           → font families (sans, serif, mono)
+  --spacing-unit-*   → layout spacing units
+```
+
+**Right way:**
+```tsx
+<div className="bg-canvas text-ink border-grid" />
+<p className="text-blueprint font-mono" />
+<span className="text-muted bg-subtle" />
+```
+
+**Wrong way — NEVER do this:**
+```tsx
+// ❌ Hardcoded hex
+<div style={{ color: '#1C1C1E' }} />
+
+// ❌ Raw rgb/hsl
+<span style={{ background: 'rgb(250, 250, 248)' }} />
+
+// ❌ Hardcoded px for spacing
+<div style={{ padding: '16px' }} />
+
+// ❌ Tailwind arbitrary color
+<div className="bg-[#FAFAF8]" />
+```
+
+### 2. No CSS in Components
+
+Components use ONLY:
+- Tailwind utility classes (which map to design tokens)
+- CSS variables from the design system via `var(--token)`
+
+```
+FORBIDDEN:
+  ❌ <style> blocks
+  ❌ CSS modules (.module.css)
+  ❌ styled-components or CSS-in-JS
+  ❌ Inline styles with raw values
+
+SINGLE EXCEPTION:
+  ✅ Dynamic values computed from props:
+     style={{ width: `${percent}%` }}
+     style={{ '--entity-primary': entity.palette.primary }}
+
+  These are the ONLY acceptable uses of style={{}}.
+```
+
+Use `cn()` from `@repo/ui/lib/utils` for conditional classes:
+```tsx
+import { cn } from '@repo/ui/lib/utils'
+
+<div className={cn(
+  'rounded-lg p-4 bg-canvas',
+  isActive && 'border-blueprint',
+  isDisabled && 'opacity-50'
+)} />
+```
+
+### 3. Building Blocks Only
+
+Every UI element is a composition of existing components
+from `@repo/ui`. No app-local component libraries.
+
+```
+Before creating a new component:
+
+  1. Check if it exists in @repo/ui
+  2. Check if it can be composed from existing primitives
+  3. Only then create a new primitive — and it goes
+     into packages/ui/, NOT into the app
+
+NEVER:
+  ❌ Create a Button variant in apps/web/
+  ❌ Copy a component from @repo/ui into an app
+  ❌ Build a one-off card component in a page file
+
+ALWAYS:
+  ✅ Import from @repo/ui
+  ✅ Compose existing elements + blocks
+  ✅ Add new reusable components to packages/ui/
+```
+
+### 4. Grid Law
+
+**Base unit: 4px. Everything is a multiple of 4.**
+
+```
+Visual grid (visible in dev mode):
+  4px   → micro grid (barely visible)
+  16px  → base cells (the notebook)
+  64px  → major grid (layout skeleton)
+
+Grid is centered on viewport. Center never moves.
+```
+
+**Allowed spacing values (Tailwind classes):**
+
+```
+Class   → px    Use
+──────────────────────────────────────
+p-0.5   →  2    Micro adjustments only
+p-1     →  4    Tightest spacing
+p-2     →  8    Compact elements
+p-3     → 12    Small gaps
+p-4     → 16    Default gap, card padding
+p-5     → 20    Medium spacing
+p-6     → 24    Section padding
+p-8     → 32    Large spacing
+p-10    → 40    Section gaps
+p-12    → 48    Major section spacing
+p-16    → 64    Layout-level spacing
+p-20    → 80    Hero spacing
+p-24    → 96    Maximum spacing
+```
+
+```
+FORBIDDEN:
+  ❌ p-[13px]    → snap to p-3 (12px) or p-4 (16px)
+  ❌ p-[7px]     → snap to p-2 (8px)
+  ❌ gap-[22px]  → snap to gap-5 (20px) or gap-6 (24px)
+
+RULE: If the design needs a non-4px value,
+the design is wrong — snap to the grid.
+```
+
+> Detail: see "UX Conventions > Grid System" for dev overlay
+> and review workflow.
+
+### 5. Brand Color Palette
+
+**Source: `apps/web/src/app/globals.css`**
+
+Every color has a name, a category, and a purpose.
+No unnamed colors. No colors without a documented role.
+
+```
+Token                    Category   Purpose
+─────────────────────────────────────────────────────────
+--color-canvas           Surface    Page background
+--color-subtle           Surface    Subtle bg (cards, hover states)
+--color-code-bg          Surface    Code block background
+--color-grid             Surface    Grid line base color
+
+--color-ink              Text       Primary text
+--color-ink-light        Text       Secondary text
+--color-muted            Text       Muted / disabled text
+
+--color-blueprint        Brand      Primary brand color, links
+--color-blueprint-light  Brand      Hover / lighter variant
+
+--color-accent           Accent     Interactive highlights, CTA
+--color-accent-light     Accent     Hover / lighter variant
+
+--grid-line-micro        Grid       4px grid lines (5% ink opacity)
+--grid-line-base         Grid       16px grid lines (12% ink opacity)
+--grid-line-major        Grid       64px grid lines (25% ink opacity)
+```
+
+**Font tokens:**
+```
+--font-sans   → Inter          (body text, UI)
+--font-serif  → Lora           (editorial, blog)
+--font-mono   → JetBrains Mono (code, specs)
+```
+
+**Naming is intentional.** Colors use brand vocabulary
+(canvas, ink, blueprint) — not generic names. This is by
+design. Do not rename to `--color-brand-*` or
+`--color-surface-*`.
+
+**Usage in Tailwind:**
+```
+CSS variable         → Tailwind class
+--color-canvas       → bg-canvas, text-canvas
+--color-ink          → text-ink, border-ink
+--color-blueprint    → text-blueprint, bg-blueprint
+--color-accent       → text-accent, bg-accent
+--color-muted        → text-muted
+--color-subtle       → bg-subtle
+--color-code-bg      → bg-code-bg
+--color-grid         → border-grid
+```
+
+### 6. Breakpoint Behavior
+
+**Tailwind v4 default breakpoints:**
+
+```
+Breakpoint  Width    Transition
+──────────────────────────────────────
+sm          640px    mobile → tablet
+md          768px    tablet layout
+lg          1024px   desktop
+xl          1280px   wide desktop
+2xl         1536px   ultra-wide
+```
+
+**Per-app behavior:**
+```
+pavelrapoport.com (public):
+  Mobile-first. Full responsive.
+  Content max-width: 768px (prose), 1280px (layout)
+
+Studio (internal):
+  Desktop-first. Min width: 1024px.
+  On mobile: "Studio works best on desktop" warning.
+```
+
+> Detail: see "UX Conventions > Responsive Strategy"
+> for per-app breakpoint rules and container behavior.
+
+---
+
 ## Server Architecture
 
 ### Contract-First API
@@ -4231,6 +4464,8 @@ Screen reader and transitions:
 
 ### Styling
 
+> Design system rules: see "Design System Laws" section above.
+
 **Tailwind CSS as foundation** — utility-first, fast,
 consistent. Good for structure and layout.
 
@@ -5908,6 +6143,8 @@ Weight:
 ```
 
 ### Grid System
+
+> Authoritative grid rules: see "Design System Laws > Grid Law" above.
 
 ```
 Pixel Perfect Grid — every layout starts from the grid.
