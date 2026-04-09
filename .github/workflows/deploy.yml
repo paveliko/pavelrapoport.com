@@ -109,15 +109,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx --yes wrangler whoami
-          echo "Deploy target account: $CLOUDFLARE_ACCOUNT_ID"
-          curl -fsS \
+          echo "--- Wrangler identity ---"
+          npx --yes wrangler whoami || true
+          echo "--- Deploy target account: $CLOUDFLARE_ACCOUNT_ID ---"
+          code=$(curl -sS -o /dev/null -w "%{http_code}" \
             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID" \
-            >/dev/null || {
-              echo "::error::CLOUDFLARE_API_TOKEN cannot access CLOUDFLARE_ACCOUNT_ID ($CLOUDFLARE_ACCOUNT_ID). Fix Infisical env values or token permissions."
-              exit 1
-            }
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID")
+          if [ "$code" != "200" ]; then
+            echo "::error::Cloudflare account check failed (HTTP $code). Token likely belongs to another account or lacks permissions. Verify CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID in Infisical."
+            exit 1
+          fi
         env:
           CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
@@ -204,15 +205,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx --yes wrangler whoami
-          echo "Deploy target account: $CLOUDFLARE_ACCOUNT_ID"
-          curl -fsS \
+          echo "--- Wrangler identity ---"
+          npx --yes wrangler whoami || true
+          echo "--- Deploy target account: $CLOUDFLARE_ACCOUNT_ID ---"
+          code=$(curl -sS -o /dev/null -w "%{http_code}" \
             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID" \
-            >/dev/null || {
-              echo "::error::CLOUDFLARE_API_TOKEN cannot access CLOUDFLARE_ACCOUNT_ID ($CLOUDFLARE_ACCOUNT_ID). Fix Infisical env values or token permissions."
-              exit 1
-            }
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID")
+          if [ "$code" != "200" ]; then
+            echo "::error::Cloudflare account check failed (HTTP $code). Token likely belongs to another account or lacks permissions. Verify CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID in Infisical."
+            exit 1
+          fi
         env:
           CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
