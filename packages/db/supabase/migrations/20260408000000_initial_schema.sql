@@ -20,13 +20,15 @@ create table public.profiles (
 alter table public.profiles enable row level security;
 
 -- Users can read their own profile
-create policy "profiles: users read own"
+create policy "Users can read own profile"
   on public.profiles for select
+  to authenticated
   using (auth.uid() = id);
 
 -- Admin can read all profiles
-create policy "profiles: admin reads all"
+create policy "Admin can read all profiles"
   on public.profiles for select
+  to authenticated
   using (
     exists (
       select 1 from public.profiles p
@@ -35,14 +37,10 @@ create policy "profiles: admin reads all"
   );
 
 -- Users can update their own profile
-create policy "profiles: users update own"
+create policy "Users can update own profile"
   on public.profiles for update
+  to authenticated
   using (auth.uid() = id);
-
--- Allow trigger (security definer) to insert
-create policy "profiles: insert via trigger"
-  on public.profiles for insert
-  with check (true);
 
 -- Auto-update updated_at
 create trigger profiles_updated_at
@@ -53,15 +51,15 @@ create trigger profiles_updated_at
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, display_name, locale)
+  insert into public.profiles (id, display_name, role)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1)),
-    'en'
+    coalesce(new.raw_user_meta_data ->> 'full_name', new.email),
+    case when new.email = 'hello@pavelrapoport.com' then 'admin' else 'user' end
   );
   return new;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path to '';
 
 create trigger on_auth_user_created
   after insert on auth.users
@@ -92,27 +90,30 @@ create table public.canvas_sessions (
 alter table public.canvas_sessions enable row level security;
 
 -- Anon/authenticated can create a session
-create policy "canvas_sessions: anyone can insert"
+create policy "Anyone can create a canvas session"
   on public.canvas_sessions for insert
+  to anon, authenticated
   with check (true);
 
 -- Admin can read all sessions
-create policy "canvas_sessions: admin reads all"
+create policy "Admin can read all canvas sessions"
   on public.canvas_sessions for select
+  to authenticated
   using (
     exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid() and p.role = 'admin'
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'admin'
     )
   );
 
 -- Admin can update sessions
-create policy "canvas_sessions: admin updates all"
+create policy "Admin can update canvas sessions"
   on public.canvas_sessions for update
+  to authenticated
   using (
     exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid() and p.role = 'admin'
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'admin'
     )
   );
 
@@ -142,43 +143,14 @@ create table public.clients (
 
 alter table public.clients enable row level security;
 
--- Admin only: select
-create policy "clients: admin reads all"
-  on public.clients for select
+-- Admin only: full access
+create policy "Admin can do everything with clients"
+  on public.clients for all
+  to authenticated
   using (
     exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid() and p.role = 'admin'
-    )
-  );
-
--- Admin only: insert
-create policy "clients: admin inserts"
-  on public.clients for insert
-  with check (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid() and p.role = 'admin'
-    )
-  );
-
--- Admin only: update
-create policy "clients: admin updates"
-  on public.clients for update
-  using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid() and p.role = 'admin'
-    )
-  );
-
--- Admin only: delete
-create policy "clients: admin deletes"
-  on public.clients for delete
-  using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid() and p.role = 'admin'
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'admin'
     )
   );
 
