@@ -105,6 +105,11 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Missing CLOUDFLARE_API_TOKEN env var (check Infisical)"; exit 1; }
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "::error::Missing CLOUDFLARE_ACCOUNT_ID env var (check Infisical)"; exit 1; }
 
+      - name: Cloudflare auth check
+        run: npx --yes wrangler whoami
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
+
       - name: Deploy to Cloudflare Workers
         id: deploy
         run: pnpm --filter @repo/web exec opennextjs-cloudflare deploy
@@ -182,6 +187,11 @@ jobs:
           set -euo pipefail
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Missing CLOUDFLARE_API_TOKEN env var (check Infisical)"; exit 1; }
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "::error::Missing CLOUDFLARE_ACCOUNT_ID env var (check Infisical)"; exit 1; }
+
+      - name: Cloudflare auth check
+        run: npx --yes wrangler whoami
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
 
       - name: Deploy to Cloudflare Workers
         id: deploy
