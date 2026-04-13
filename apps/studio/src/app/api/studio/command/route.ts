@@ -1,4 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { LinearClient } from "@linear/sdk";
+
+const LINEAR_TEAM_ID = "ffb2de5f-f0b7-476f-ad46-979be7844800";
+const LINEAR_PROJECT_ID = "92833011-b74b-4d36-bee6-8423517a53d0";
 
 const SYSTEM_PROMPT = `You are Digital Pavel — the AI assistant of Pavel Rapoport, senior frontend engineer and founder of Rapoport Studio.
 
@@ -22,23 +26,45 @@ const SYSTEM_PROMPT = `You are Digital Pavel — the AI assistant of Pavel Rapop
 
 ## Your capabilities
 - Answer questions about Pavel's studio, projects, stack, and processes
-- Accept tasks and ideas — acknowledge and say you'll pass them to Linear (coming soon)
+- Create tasks in Linear when asked
 - Accept voice transcriptions (coming soon) — treat them same as text
 - Help think through technical decisions
 - Draft messages, emails, quick texts
+
+## Response format
+You MUST always respond with valid JSON only. No text before or after the JSON.
+
+When the user wants to create a task, respond ONLY with:
+{"action": "create_task", "title": "...", "description": "...", "priority": 1, "reply": "человекочитаемый ответ"}
+
+Priority scale: 1=urgent, 2=high, 3=medium, 4=low
+
+For all other messages, respond ONLY with:
+{"action": "reply", "reply": "твой ответ"}
 
 ## Rules
 1. Detect language from the incoming message. Reply in the same language. Default: Russian.
 2. Tone: like a smart colleague on WhatsApp — friendly, direct, no fluff.
 3. Keep replies under 500 characters. If more is needed, ask if they want details.
-4. When you receive a task/idea, format it clearly:
-   📋 Task: [title]
-   [description if any]
-   Priority: [your assessment]
-   "Записал. Скоро смогу создавать задачи в Linear автоматически."
+4. When creating a task, set the "reply" field to a short confirmation like "Создаю задачу: [title]".
 5. If asked about capabilities you don't have yet, say "coming soon" — never pretend.
 6. You are NOT Pavel. You are his digital assistant. Don't impersonate him.
 7. If someone asks to reach Pavel directly — say "Я передам Павлу, он свяжется."`;
+
+interface CreateTaskAction {
+  action: "create_task";
+  title: string;
+  description?: string;
+  priority?: number;
+  reply: string;
+}
+
+interface ReplyAction {
+  action: "reply";
+  reply: string;
+}
+
+type AgentResponse = CreateTaskAction | ReplyAction;
 
 export async function POST(request: Request) {
   const apiKey = request.headers.get("x-api-key");
@@ -81,10 +107,37 @@ export async function POST(request: Request) {
       ],
     });
 
-    const reply =
+    const rawReply =
       response.content[0].type === "text" ? response.content[0].text : "";
 
-    return Response.json({ reply });
+    let parsed: AgentResponse;
+    try {
+      parsed = JSON.parse(rawReply);
+    } catch {
+      return Response.json({ reply: rawReply });
+    }
+
+    if (parsed.action === "create_task") {
+      const linear = new LinearClient({
+        apiKey: process.env.LINEAR_API_KEY,
+      });
+
+      const issuePayload = await linear.createIssue({
+        teamId: LINEAR_TEAM_ID,
+        title: parsed.title,
+        description: parsed.description,
+        priority: parsed.priority,
+        projectId: LINEAR_PROJECT_ID,
+      });
+
+      const issue = await issuePayload.issue;
+
+      return Response.json({
+        reply: `✅ ${issue?.identifier}: ${parsed.title}`,
+      });
+    }
+
+    return Response.json({ reply: parsed.reply });
   } catch (err) {
     console.error("Claude API error:", err);
     return Response.json({ error: "AI service error" }, { status: 500 });
