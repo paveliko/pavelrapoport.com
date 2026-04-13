@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { LinearClient } from "@linear/sdk";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 const LINEAR_TEAM_ID = "ffb2de5f-f0b7-476f-ad46-979be7844800";
 const LINEAR_PROJECT_ID = "92833011-b74b-4d36-bee6-8423517a53d0";
@@ -69,7 +70,8 @@ type AgentResponse = CreateTaskAction | ReplyAction;
 
 export async function POST(request: Request) {
   const apiKey = request.headers.get("x-api-key");
-  if (apiKey !== process.env.STUDIO_COMMAND_API_KEY) {
+  const { env: cfEnv } = await getCloudflareContext();
+  if (apiKey !== (cfEnv as Record<string, unknown>).STUDIO_COMMAND_API_KEY) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -93,7 +95,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = new Anthropic({ apiKey: (cfEnv as Record<string, unknown>).ANTHROPIC_API_KEY as string });
 
   try {
     const response = await client.messages.create({
@@ -126,7 +128,7 @@ export async function POST(request: Request) {
 
     if (parsed.action === "create_task") {
       const linear = new LinearClient({
-        apiKey: process.env.LINEAR_API_KEY,
+        apiKey: (cfEnv as Record<string, unknown>).LINEAR_API_KEY as string,
       });
 
       const issuePayload = await linear.createIssue({
