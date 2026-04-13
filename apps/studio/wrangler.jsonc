@@ -7,5 +7,22 @@
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
-  }
+  },
+  "routes": [
+    { "pattern": "studio.pavelrapoport.com", "custom_domain": true }
+  ],
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://studio.pavelrapoport.com",
+    "SUPABASE_URL": "https://mtavnbjdgldttqdpwouo.supabase.co",
+    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10YXZuYmpkZ2xkdHRxZHB3b3VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMzNDY3MjQsImV4cCI6MjA1ODkyMjcyNH0.rk0Kt7Xzb3VpCDyAVn36z1sDpXhNnkHnnJb7tuo35Gg",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://mtavnbjdgldttqdpwouo.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10YXZuYmpkZ2xkdHRxZHB3b3VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMzNDY3MjQsImV4cCI6MjA1ODkyMjcyNH0.rk0Kt7Xzb3VpCDyAVn36z1sDpXhNnkHnnJb7tuo35Gg"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "6c6e2fa61a2a4861a53e8942ba8b628f",
+      "preview_id": "28fa327e2178474e951cd4c0fbefd9c6"
+    }
+  ]
 }

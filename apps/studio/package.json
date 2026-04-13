@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.88.0",
     "@opennextjs/cloudflare": "^1.18.1",
     "@repo/auth": "workspace:*",
     "@repo/config": "workspace:*",

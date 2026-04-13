@@ -1,7 +1,7 @@
 import { createAuthProxy } from "@repo/auth/proxy";
 
 export const middleware = createAuthProxy({
-  publicRoutes: ["/login", "/auth/callback"],
+  publicRoutes: ["/login", "/auth/callback", "/api/studio/command"],
   loginUrl: "/login",
 });
 
