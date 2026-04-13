@@ -33,6 +33,7 @@ const SYSTEM_PROMPT = `You are Digital Pavel — the AI assistant of Pavel Rapop
 
 ## Response format
 You MUST always respond with valid JSON only. No text before or after the JSON.
+IMPORTANT: Return raw JSON only. No markdown, no code fences, no backticks, no explanation before or after.
 
 When the user wants to create a task, respond ONLY with:
 {"action": "create_task", "title": "...", "description": "...", "priority": 1, "reply": "человекочитаемый ответ"}
@@ -110,9 +111,15 @@ export async function POST(request: Request) {
     const rawReply =
       response.content[0].type === "text" ? response.content[0].text : "";
 
+    // Strip markdown code fences if present
+    const cleanReply = rawReply
+      .replace(/^```(?:json)?\s*\n?/i, "")
+      .replace(/\n?```\s*$/i, "")
+      .trim();
+
     let parsed: AgentResponse;
     try {
-      parsed = JSON.parse(rawReply);
+      parsed = JSON.parse(cleanReply);
     } catch {
       return Response.json({ reply: rawReply });
     }
