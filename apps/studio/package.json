@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.88.0",
+    "@linear/sdk": "^81.0.0",
     "@opennextjs/cloudflare": "^1.18.1",
     "@repo/auth": "workspace:*",
     "@repo/config": "workspace:*",
