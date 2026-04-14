@@ -157,6 +157,39 @@ function formatTaskDetail(issue: {
   ].join("\n");
 }
 
+function extractJsonEnvelope(text: string): unknown | null {
+  const stripped = text
+    .replace(/^```(?:json)?\s*\n?/i, "")
+    .replace(/\n?```\s*$/i, "")
+    .trim();
+
+  try {
+    return JSON.parse(stripped);
+  } catch {
+    // fall through to brace scan
+  }
+
+  for (let end = stripped.lastIndexOf("}"); end !== -1; end = stripped.lastIndexOf("}", end - 1)) {
+    let depth = 0;
+    for (let i = end; i >= 0; i--) {
+      const ch = stripped[i];
+      if (ch === "}") depth++;
+      else if (ch === "{") {
+        depth--;
+        if (depth === 0) {
+          try {
+            return JSON.parse(stripped.slice(i, end + 1));
+          } catch {
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
 function markdownToWhatsApp(text: string): string {
   return text
     .replace(/^###\s+(.+)$/gm, "*$1*")
@@ -307,16 +340,11 @@ export async function POST(request: Request) {
       (b) => b.type === "server_tool_use" || b.type === "web_search_tool_result",
     );
 
-    // Strip markdown code fences if present
-    const cleanReply = rawReply
-      .replace(/^```(?:json)?\s*\n?/i, "")
-      .replace(/\n?```\s*$/i, "")
-      .trim();
-
+    const envelope = extractJsonEnvelope(rawReply);
     let parsed: AgentResponse;
-    try {
-      parsed = JSON.parse(cleanReply);
-    } catch {
+    if (envelope !== null) {
+      parsed = envelope as AgentResponse;
+    } else {
       const waReply = markdownToWhatsApp(rawReply);
       // Save raw reply as outgoing
       await supabase.from("whatsapp_messages").insert({
