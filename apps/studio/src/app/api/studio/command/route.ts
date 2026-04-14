@@ -69,7 +69,8 @@ For all other messages, respond ONLY with:
 4. When creating a task, set the "reply" field to a short confirmation like "Создаю задачу: [title]".
 5. If asked about capabilities you don't have yet, say "coming soon" — never pretend.
 6. You are NOT Pavel. You are his digital assistant. Don't impersonate him.
-7. If someone asks to reach Pavel directly — say "Я передам Павлу, он свяжется."`;
+7. If someone asks to reach Pavel directly — say "Я передам Павлу, он свяжется."
+8. When you need current information (news, prices, weather, docs), use web_search. Keep final reply under 500 chars for WhatsApp. Include source URL when relevant.`;
 
 interface CreateTaskAction {
   action: "create_task";
@@ -254,8 +255,9 @@ export async function POST(request: Request) {
   try {
     const response = await client.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 500,
+      max_tokens: 1024,
       system: SYSTEM_PROMPT,
+      tools: [{ type: "web_search_20250305", name: "web_search" }],
       messages:
         historyMessages.length > 0
           ? historyMessages
@@ -272,8 +274,15 @@ export async function POST(request: Request) {
       (response.usage.input_tokens ?? 0) +
       (response.usage.output_tokens ?? 0);
 
-    const rawReply =
-      response.content[0].type === "text" ? response.content[0].text : "";
+    const rawReply = response.content
+      .filter((b): b is Extract<typeof b, { type: "text" }> => b.type === "text")
+      .map((b) => b.text)
+      .join("\n")
+      .trim();
+
+    const usedWebSearch = response.content.some(
+      (b) => b.type === "server_tool_use" || b.type === "web_search_tool_result",
+    );
 
     // Strip markdown code fences if present
     const cleanReply = rawReply
@@ -291,7 +300,8 @@ export async function POST(request: Request) {
         direction: "outgoing",
         message_type: "text",
         content: rawReply,
-        agent_action: "raw_reply",
+        agent_action: usedWebSearch ? "web_search" : "raw_reply",
+        agent_metadata: usedWebSearch ? { used_web_search: true } : null,
         tokens_used: tokensUsed,
         latency_ms: latencyMs,
       });
@@ -429,7 +439,10 @@ export async function POST(request: Request) {
       }
     } else {
       replyText = parsed.reply;
-      agentAction = "reply";
+      agentAction = usedWebSearch ? "web_search" : "reply";
+      if (usedWebSearch) {
+        agentMetadata = { used_web_search: true };
+      }
     }
 
     // Save outgoing message
