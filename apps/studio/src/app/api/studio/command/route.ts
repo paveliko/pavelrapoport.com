@@ -29,6 +29,7 @@ const SYSTEM_PROMPT = `You are Digital Pavel — the AI assistant of Pavel Rapop
 ## Your capabilities
 - Answer questions about Pavel's studio, projects, stack, and processes
 - Create tasks in Linear when asked
+- Read and list tasks from Linear (by status filter or specific task lookup)
 - Accept voice transcriptions (coming soon) — treat them same as text
 - Help think through technical decisions
 - Draft messages, emails, quick texts
@@ -41,6 +42,22 @@ When the user wants to create a task, respond ONLY with:
 {"action": "create_task", "title": "...", "description": "...", "priority": 1, "reply": "человекочитаемый ответ"}
 
 Priority scale: 1=urgent, 2=high, 3=medium, 4=low
+
+When the user wants to see a list of tasks, respond ONLY with:
+{"action": "read_tasks", "filter": "all|in_progress|todo|backlog|completed_today", "reply": "Показываю задачи..."}
+
+Filters:
+- "all" — all active tasks (not completed, not cancelled)
+- "in_progress" — tasks currently being worked on
+- "todo" — tasks in the todo state
+- "backlog" — tasks in the backlog
+- "completed_today" — tasks completed in the last 24 hours
+
+When the user asks about a specific task (by identifier like "AI-36" or by keywords), respond ONLY with:
+{"action": "get_task_status", "identifier": "AI-36", "reply": "Ищу задачу AI-36..."}
+or
+{"action": "get_task_status", "keywords": "whatsapp интеграция", "reply": "Ищу задачу..."}
+Provide either "identifier" or "keywords", not both.
 
 For all other messages, respond ONLY with:
 {"action": "reply", "reply": "твой ответ"}
@@ -67,7 +84,66 @@ interface ReplyAction {
   reply: string;
 }
 
-type AgentResponse = CreateTaskAction | ReplyAction;
+interface ReadTasksAction {
+  action: "read_tasks";
+  filter: "all" | "in_progress" | "todo" | "backlog" | "completed_today";
+  reply: string;
+}
+
+interface GetTaskStatusAction {
+  action: "get_task_status";
+  identifier?: string;
+  keywords?: string;
+  reply: string;
+}
+
+type AgentResponse =
+  | CreateTaskAction
+  | ReplyAction
+  | ReadTasksAction
+  | GetTaskStatusAction;
+
+function formatTaskList(
+  issues: Array<{ identifier: string; title: string; stateName: string }>,
+  totalCount: number,
+): string {
+  if (issues.length === 0) return "Нет задач по этому фильтру";
+  const lines = issues.map(
+    (i) => `• ${i.identifier}: ${i.title} [${i.stateName}]`,
+  );
+  let result = lines.join("\n");
+  if (totalCount > issues.length) {
+    result += `\n\n...и ещё ${totalCount - issues.length}`;
+  }
+  if (result.length > 480) {
+    result = result.substring(0, 477) + "...";
+  }
+  return result;
+}
+
+function formatTaskDetail(issue: {
+  identifier: string;
+  title: string;
+  stateName: string;
+  priority: number;
+  assigneeName: string | null;
+  updatedAt: string;
+}): string {
+  const priorityLabels: Record<number, string> = {
+    0: "Нет",
+    1: "Срочный",
+    2: "Высокий",
+    3: "Средний",
+    4: "Низкий",
+  };
+  return [
+    `${issue.identifier}: ${issue.title}`,
+    `Статус: ${issue.stateName}`,
+    `Приоритет: ${priorityLabels[issue.priority] ?? "Неизвестно"}`,
+    `Исполнитель: ${issue.assigneeName ?? "Не назначен"}`,
+    `Обновлено: ${new Date(issue.updatedAt).toLocaleDateString("ru-RU")}`,
+  ].join("\n");
+}
 
 export async function POST(request: Request) {
   const apiKey = request.headers.get("x-api-key");
@@ -249,6 +325,108 @@ export async function POST(request: Request) {
         priority: parsed.priority,
         linear_issue_id: issue?.identifier,
       };
+    } else if (parsed.action === "read_tasks") {
+      const linear = new LinearClient({
+        apiKey: (cfEnv as Record<string, unknown>).LINEAR_API_KEY as string,
+      });
+
+      const stateFilter: Record<string, unknown> = {};
+      const issueFilter: Record<string, unknown> = {
+        team: { id: { eq: LINEAR_TEAM_ID } },
+      };
+
+      switch (parsed.filter) {
+        case "in_progress":
+          stateFilter.name = { eq: "In Progress" };
+          break;
+        case "todo":
+          stateFilter.name = { eq: "Todo" };
+          break;
+        case "backlog":
+          stateFilter.name = { eq: "Backlog" };
+          break;
+        case "completed_today":
+          stateFilter.type = { eq: "completed" };
+          issueFilter.completedAt = {
+            gte: new Date(Date.now() - 86400000).toISOString(),
+          };
+          break;
+        default:
+          // "all" — exclude completed and canceled
+          stateFilter.type = { nin: ["completed", "canceled"] };
+          break;
+      }
+
+      if (Object.keys(stateFilter).length > 0) {
+        issueFilter.state = stateFilter;
+      }
+
+      const issueConnection = await linear.issues({
+        filter: issueFilter,
+        first: 10,
+      });
+
+      const issues = issueConnection.nodes;
+      const issuesFormatted = await Promise.all(
+        issues.map(async (issue) => ({
+          identifier: issue.identifier,
+          title: issue.title,
+          stateName: (await issue.state)?.name ?? "Unknown",
+        })),
+      );
+
+      replyText = formatTaskList(issuesFormatted, issues.length);
+      agentAction = "read_tasks";
+      agentMetadata = { filter: parsed.filter, count: issues.length };
+    } else if (parsed.action === "get_task_status") {
+      const linear = new LinearClient({
+        apiKey: (cfEnv as Record<string, unknown>).LINEAR_API_KEY as string,
+      });
+
+      let foundIssue = null;
+
+      if (parsed.identifier) {
+        const results = await linear.issueSearch({
+          query: parsed.identifier,
+          first: 5,
+        });
+        foundIssue =
+          results.nodes.find(
+            (i) =>
+              i.identifier.toLowerCase() ===
+              parsed.identifier!.toLowerCase(),
+          ) ??
+          results.nodes[0] ??
+          null;
+      } else if (parsed.keywords) {
+        const results = await linear.issueSearch({
+          query: parsed.keywords,
+          first: 5,
+        });
+        foundIssue = results.nodes[0] ?? null;
+      }
+
+      if (foundIssue) {
+        const state = await foundIssue.state;
+        const assignee = await foundIssue.assignee;
+        replyText = formatTaskDetail({
+          identifier: foundIssue.identifier,
+          title: foundIssue.title,
+          stateName: state?.name ?? "Unknown",
+          priority: foundIssue.priority,
+          assigneeName: assignee?.name ?? null,
+          updatedAt: foundIssue.updatedAt.toISOString(),
+        });
+        agentAction = "get_task_status";
+        agentMetadata = { identifier: foundIssue.identifier };
+      } else {
+        replyText = "Задача не найдена";
+        agentAction = "get_task_status";
+        agentMetadata = {
+          identifier: parsed.identifier ?? null,
+          keywords: parsed.keywords ?? null,
+        };
+      }
     } else {
       replyText = parsed.reply;
       agentAction = "reply";
