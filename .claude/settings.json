@@ -26,7 +26,8 @@
       "Bash(pnpm --version)",
       "Bash(pnpm install:*)",
       "Bash(pnpm turbo:*)",
-      "Bash(pnpm exec:*)"
+      "Bash(pnpm exec:*)",
+      "Bash(git revert:*)"
     ],
     "additionalDirectories": [
       "/Users/pavelrapoport/Documents/GitHub/pavelrapoport.com/src/app/[lang]",

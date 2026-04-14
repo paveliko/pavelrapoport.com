@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { LinearClient } from "@linear/sdk";
+import { createClient } from "@supabase/supabase-js";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 const LINEAR_TEAM_ID = "ffb2de5f-f0b7-476f-ad46-979be7844800";
@@ -75,14 +76,24 @@ export async function POST(request: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { message?: string; from?: string; type?: string };
+  const supabase = createClient(
+    (cfEnv as Record<string, unknown>).SUPABASE_URL as string,
+    (cfEnv as Record<string, unknown>).SUPABASE_SERVICE_ROLE_KEY as string,
+  );
+
+  let body: {
+    message?: string;
+    from?: string;
+    type?: string;
+    wa_message_id?: string;
+  };
   try {
     body = await request.json();
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { message, from, type } = body;
+  const { message, from, type, wa_message_id } = body;
 
   if (!message || typeof message !== "string") {
     return Response.json({ error: "Missing 'message' field" }, { status: 400 });
@@ -95,20 +106,95 @@ export async function POST(request: Request) {
     );
   }
 
-  const client = new Anthropic({ apiKey: (cfEnv as Record<string, unknown>).ANTHROPIC_API_KEY as string });
+  const phoneNumber = from ?? "unknown";
+
+  // Deduplication: if wa_message_id already processed, return cached reply
+  if (wa_message_id) {
+    const { data: existing } = await supabase
+      .from("whatsapp_messages")
+      .select("id, phone_number, created_at")
+      .eq("wa_message_id", wa_message_id)
+      .eq("direction", "incoming")
+      .maybeSingle();
+
+    if (existing) {
+      const { data: cachedReply } = await supabase
+        .from("whatsapp_messages")
+        .select("content")
+        .eq("phone_number", existing.phone_number)
+        .eq("direction", "outgoing")
+        .gt("created_at", existing.created_at)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      return Response.json({
+        reply: cachedReply?.content ?? "Message already processed.",
+      });
+    }
+  }
+
+  // Save incoming message
+  await supabase.from("whatsapp_messages").insert({
+    phone_number: phoneNumber,
+    direction: "incoming",
+    message_type: type ?? "text",
+    content: message,
+    wa_message_id: wa_message_id ?? null,
+  });
+
+  // Load conversation history (last 10 messages)
+  const { data: history } = await supabase
+    .from("whatsapp_messages")
+    .select("direction, content")
+    .eq("phone_number", phoneNumber)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  const historyMessages = (history ?? [])
+    .reverse()
+    .map((msg) => ({
+      role:
+        msg.direction === "incoming"
+          ? ("user" as const)
+          : ("assistant" as const),
+      content: msg.content,
+    }));
+
+  // Add [from:] context to the latest user message
+  if (historyMessages.length > 0) {
+    const last = historyMessages[historyMessages.length - 1];
+    if (last.role === "user") {
+      last.content = `[from: ${phoneNumber}]\n${last.content}`;
+    }
+  }
+
+  const client = new Anthropic({
+    apiKey: (cfEnv as Record<string, unknown>).ANTHROPIC_API_KEY as string,
+  });
+
+  const startTime = Date.now();
 
   try {
     const response = await client.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 500,
       system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: `[from: ${from ?? "unknown"}]\n${message}`,
-        },
-      ],
+      messages:
+        historyMessages.length > 0
+          ? historyMessages
+          : [
+              {
+                role: "user" as const,
+                content: `[from: ${phoneNumber}]\n${message}`,
+              },
+            ],
     });
+
+    const latencyMs = Date.now() - startTime;
+    const tokensUsed =
+      (response.usage.input_tokens ?? 0) +
+      (response.usage.output_tokens ?? 0);
 
     const rawReply =
       response.content[0].type === "text" ? response.content[0].text : "";
@@ -123,8 +209,22 @@ export async function POST(request: Request) {
     try {
       parsed = JSON.parse(cleanReply);
     } catch {
+      // Save raw reply as outgoing
+      await supabase.from("whatsapp_messages").insert({
+        phone_number: phoneNumber,
+        direction: "outgoing",
+        message_type: "text",
+        content: rawReply,
+        agent_action: "raw_reply",
+        tokens_used: tokensUsed,
+        latency_ms: latencyMs,
+      });
       return Response.json({ reply: rawReply });
     }
+
+    let replyText: string;
+    let agentAction: string;
+    let agentMetadata: Record<string, unknown> | null = null;
 
     if (parsed.action === "create_task") {
       const linear = new LinearClient({
@@ -141,12 +241,32 @@ export async function POST(request: Request) {
 
       const issue = await issuePayload.issue;
 
-      return Response.json({
-        reply: `✅ ${issue?.identifier}: ${parsed.title}`,
-      });
+      replyText = `✅ ${issue?.identifier}: ${parsed.title}`;
+      agentAction = "create_task";
+      agentMetadata = {
+        title: parsed.title,
+        description: parsed.description,
+        priority: parsed.priority,
+        linear_issue_id: issue?.identifier,
+      };
+    } else {
+      replyText = parsed.reply;
+      agentAction = "reply";
     }
 
-    return Response.json({ reply: parsed.reply });
+    // Save outgoing message
+    await supabase.from("whatsapp_messages").insert({
+      phone_number: phoneNumber,
+      direction: "outgoing",
+      message_type: "text",
+      content: replyText,
+      agent_action: agentAction,
+      agent_metadata: agentMetadata,
+      tokens_used: tokensUsed,
+      latency_ms: latencyMs,
+    });
+
+    return Response.json({ reply: replyText });
   } catch (err) {
     console.error("Claude API error:", err);
     return Response.json({ error: "AI service error" }, { status: 500 });

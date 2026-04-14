@@ -144,6 +144,53 @@ export type Database = {
           updated_at?: string;
         };
       };
+      whatsapp_messages: {
+        Row: {
+          id: string;
+          phone_number: string;
+          sender_name: string | null;
+          direction: string;
+          message_type: string;
+          content: string;
+          raw_transcription: string | null;
+          agent_action: string | null;
+          agent_metadata: Json | null;
+          wa_message_id: string | null;
+          tokens_used: number | null;
+          latency_ms: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          phone_number: string;
+          sender_name?: string | null;
+          direction: string;
+          message_type?: string;
+          content: string;
+          raw_transcription?: string | null;
+          agent_action?: string | null;
+          agent_metadata?: Json | null;
+          wa_message_id?: string | null;
+          tokens_used?: number | null;
+          latency_ms?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          phone_number?: string;
+          sender_name?: string | null;
+          direction?: string;
+          message_type?: string;
+          content?: string;
+          raw_transcription?: string | null;
+          agent_action?: string | null;
+          agent_metadata?: Json | null;
+          wa_message_id?: string | null;
+          tokens_used?: number | null;
+          latency_ms?: number | null;
+          created_at?: string;
+        };
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
