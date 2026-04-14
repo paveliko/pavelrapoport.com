@@ -420,21 +420,24 @@ export async function POST(request: Request) {
       let foundIssue = null;
 
       if (parsed.identifier) {
-        const results = await linear.issueSearch({
-          query: parsed.identifier,
-          first: 5,
+        const issueNumber = parseInt(parsed.identifier.replace(/\D/g, ""), 10);
+        const results = await linear.issues({
+          filter: {
+            team: { id: { eq: LINEAR_TEAM_ID } },
+            number: { eq: issueNumber },
+          },
+          first: 1,
         });
-        foundIssue =
-          results.nodes.find(
-            (i) =>
-              i.identifier.toLowerCase() ===
-              parsed.identifier!.toLowerCase(),
-          ) ??
-          results.nodes[0] ??
-          null;
+        foundIssue = results.nodes[0] ?? null;
       } else if (parsed.keywords) {
-        const results = await linear.issueSearch({
-          query: parsed.keywords,
+        const results = await linear.issues({
+          filter: {
+            team: { id: { eq: LINEAR_TEAM_ID } },
+            or: [
+              { title: { contains: parsed.keywords } },
+              { description: { contains: parsed.keywords } },
+            ],
+          },
           first: 5,
         });
         foundIssue = results.nodes[0] ?? null;
