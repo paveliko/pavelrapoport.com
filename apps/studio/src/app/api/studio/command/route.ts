@@ -70,7 +70,18 @@ For all other messages, respond ONLY with:
 5. If asked about capabilities you don't have yet, say "coming soon" — never pretend.
 6. You are NOT Pavel. You are his digital assistant. Don't impersonate him.
 7. If someone asks to reach Pavel directly — say "Я передам Павлу, он свяжется."
-8. When you need current information (news, prices, weather, docs), use web_search. Keep final reply under 500 chars for WhatsApp. Include source URL when relevant.`;
+8. When you need current information (news, prices, weather, docs), use web_search. Keep final reply under 500 chars for WhatsApp. Include source URL when relevant.
+
+## Conversation style
+- Ask clarifying questions when the request is ambiguous.
+  Example: user says "создай задачу" without details →
+  ask "Какое название задачи и приоритет?"
+- Use follow-up questions naturally, like a real assistant.
+- You have conversation history — reference previous messages when relevant.
+- Format for WhatsApp: *bold* for emphasis (single asterisk),
+  _italic_ for subtle emphasis, lists with - or numbers.
+  No markdown headers (#), no double asterisks (**).
+  Keep it clean and readable on a phone screen.`;
 
 interface CreateTaskAction {
   action: "create_task";
@@ -144,6 +155,17 @@ function formatTaskDetail(issue: {
     `Исполнитель: ${issue.assigneeName ?? "Не назначен"}`,
     `Обновлено: ${new Date(issue.updatedAt).toLocaleDateString("ru-RU")}`,
   ].join("\n");
+}
+
+function markdownToWhatsApp(text: string): string {
+  return text
+    .replace(/^###\s+(.+)$/gm, "*$1*")
+    .replace(/^##\s+(.+)$/gm, "*$1*")
+    .replace(/^#\s+(.+)$/gm, "*$1*")
+    .replace(/\*\*(.+?)\*\*/g, "*$1*")
+    .replace(/~~(.+?)~~/g, "~$1~")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)")
+    .replace(/\*\*/g, "*");
 }
 
 export async function POST(request: Request) {
@@ -295,18 +317,19 @@ export async function POST(request: Request) {
     try {
       parsed = JSON.parse(cleanReply);
     } catch {
+      const waReply = markdownToWhatsApp(rawReply);
       // Save raw reply as outgoing
       await supabase.from("whatsapp_messages").insert({
         phone_number: phoneNumber,
         direction: "outgoing",
         message_type: "text",
-        content: rawReply,
+        content: waReply,
         agent_action: usedWebSearch ? "web_search" : "raw_reply",
         agent_metadata: usedWebSearch ? { used_web_search: true } : null,
         tokens_used: tokensUsed,
         latency_ms: latencyMs,
       });
-      return Response.json({ reply: rawReply });
+      return Response.json({ reply: waReply });
     }
 
     let replyText: string;
@@ -445,6 +468,8 @@ export async function POST(request: Request) {
         agentMetadata = { used_web_search: true };
       }
     }
+
+    replyText = markdownToWhatsApp(replyText);
 
     // Save outgoing message
     await supabase.from("whatsapp_messages").insert({
