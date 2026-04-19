@@ -26,6 +26,9 @@ dist/
 # turbo
 .turbo
 
+# forge (@repo/forge) — local audit/spec/review artifacts
+.forge/
+
 # misc
 .DS_Store
 *.pem

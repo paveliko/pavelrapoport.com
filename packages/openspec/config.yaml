@@ -52,6 +52,7 @@ context: |
   - tasks — universal work units, polymorphic assignment (user/AI), 7 sources
   - infra — Cloudflare infrastructure: Workers, KV, DNS, secrets, CI/CD
   - whatsapp-agent — WhatsApp AI agent pipeline: Meta API, n8n, Claude, Linear
+  - forge — autonomous CLI pipeline (audit / spec / review / estimate), reusable across studio monorepos
 
   ## Site Structure
   Public (no auth):

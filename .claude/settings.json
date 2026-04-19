@@ -27,12 +27,14 @@
       "Bash(pnpm install:*)",
       "Bash(pnpm turbo:*)",
       "Bash(pnpm exec:*)",
-      "Bash(git revert:*)"
+      "Bash(git revert:*)",
+      "Bash(pnpm --filter @repo/forge typecheck)"
     ],
     "additionalDirectories": [
       "/Users/pavelrapoport/Documents/GitHub/pavelrapoport.com/src/app/[lang]",
       "/Users/pavelrapoport/Documents/GitHub/pavelrapoport.com/src/app/[lang]/[slug]",
-      "/Users/pavelrapoport/Documents/GitHub/pavelrapoport.com/src/app"
+      "/Users/pavelrapoport/Documents/GitHub/pavelrapoport.com/src/app",
+      "/Users/pavelrapoport/Documents/GitHub/pavelrapoport.com/packages/forge/src"
     ]
   }
 }

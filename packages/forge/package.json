@@ -1,0 +1,46 @@
+{
+  "name": "@repo/forge",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Autonomous pipeline engine (audit, spec, review, estimate, plan). Project-agnostic core.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./worker-prompts": {
+      "types": "./dist/worker-prompts.d.ts",
+      "import": "./dist/worker-prompts.js"
+    }
+  },
+  "bin": {
+    "forge": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2",
+    "chalk": "^5",
+    "glob": "^11"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3"
+  }
+}
