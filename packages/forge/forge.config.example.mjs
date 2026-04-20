@@ -21,7 +21,7 @@ const config = {
    *   - naming conventions (locales, route groups, branded ID prefixes)
    *   - architectural invariants (secrets provider, edge runtime, etc.)
    *
-   * Absolute path, or relative to process.cwd() at init time.
+   * Absolute path, or relative to this config file's directory.
    */
   projectContextPath: './FORGE.md',
 

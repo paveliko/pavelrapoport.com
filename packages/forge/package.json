@@ -28,7 +28,7 @@
     "forge.config.example.mjs"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-prompts.mjs",
     "dev": "tsc --watch",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",

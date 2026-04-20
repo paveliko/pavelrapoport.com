@@ -13,7 +13,11 @@ export interface ForgeConfig {
    * Injected into every LLM prompt so the engine "knows" the monorepo
    * layout, conventions, stack, naming, etc.
    *
-   * Absolute path, or relative to `process.cwd()` at init time.
+   * Absolute path, or relative. Relative paths from a
+   * `forge.config.{mjs,js,json}` resolve against that config file's
+   * own directory; relative paths from the `FORGE_PROJECT_CONTEXT_PATH`
+   * env var or the `loadConfig(options)` argument resolve against
+   * `process.cwd()`.
    */
   projectContextPath: string;
 
@@ -79,17 +83,23 @@ async function loadConfigFile(): Promise<Partial<ForgeConfig>> {
 }
 
 async function readConfigFile(path: string): Promise<Partial<ForgeConfig>> {
+  let loaded: Partial<ForgeConfig>;
   if (path.endsWith('.json')) {
     const raw = await readFile(path, 'utf-8');
-    return JSON.parse(raw) as Partial<ForgeConfig>;
+    loaded = JSON.parse(raw) as Partial<ForgeConfig>;
+  } else {
+    const url = pathToFileURL(path).href;
+    const mod = (await import(url)) as {
+      default?: Partial<ForgeConfig>;
+    } & Partial<ForgeConfig>;
+    loaded = mod.default ?? mod;
   }
 
-  const url = pathToFileURL(path).href;
-  const mod = (await import(url)) as {
-    default?: Partial<ForgeConfig>;
-  } & Partial<ForgeConfig>;
-
-  return mod.default ?? mod;
+  const raw = loaded.projectContextPath;
+  if (typeof raw === 'string' && raw.length > 0 && !isAbsolute(raw)) {
+    return { ...loaded, projectContextPath: resolve(dirname(path), raw) };
+  }
+  return loaded;
 }
 
 function loadEnvConfig(): Partial<ForgeConfig> {

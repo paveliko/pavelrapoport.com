@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -10,7 +10,7 @@ describe('loadConfig', () => {
   const originalEnv = { ...process.env };
 
   beforeEach(async () => {
-    tmp = await mkdtemp(resolve(tmpdir(), 'forge-config-test-'));
+    tmp = await realpath(await mkdtemp(resolve(tmpdir(), 'forge-config-test-')));
     await mkdir(resolve(tmp, 'packages/forge'), { recursive: true });
     originalCwd = process.cwd();
     process.chdir(tmp);
@@ -117,6 +117,60 @@ describe('loadConfig', () => {
     it('normalizes mixed-case prefix to uppercase', async () => {
       const cfg = await loadConfig({ projectContextPath: '/x.md', issuePrefix: 'aI' });
       expect(cfg.issuePrefix).toBe('AI');
+    });
+  });
+
+  describe('projectContextPath resolution', () => {
+    it('file-sourced relative path resolves against config dir, not cwd', async () => {
+      await writeFile(
+        resolve(tmp, 'forge.config.mjs'),
+        `export default { projectContextPath: './context.md', issuePrefix: 'AI' };\n`,
+      );
+      await writeFile(resolve(tmp, 'context.md'), '# ctx\n');
+      process.chdir(resolve(tmp, 'packages/forge'));
+
+      const cfg = await loadConfig();
+
+      expect(cfg.projectContextPath).toBe(resolve(tmp, 'context.md'));
+      expect(cfg.projectContextPath).not.toBe(
+        resolve(tmp, 'packages/forge/context.md'),
+      );
+    });
+
+    it('file-sourced absolute path passes through unchanged', async () => {
+      await writeFile(
+        resolve(tmp, 'forge.config.json'),
+        JSON.stringify({
+          projectContextPath: '/tmp/forge-fixture-ctx.md',
+          issuePrefix: 'AI',
+        }),
+      );
+      process.chdir(resolve(tmp, 'packages/forge'));
+
+      const cfg = await loadConfig();
+
+      expect(cfg.projectContextPath).toBe('/tmp/forge-fixture-ctx.md');
+    });
+
+    it('env-sourced relative path stays cwd-relative', async () => {
+      process.chdir(resolve(tmp, 'packages/forge'));
+      process.env.FORGE_PROJECT_CONTEXT_PATH = './from-env.md';
+      process.env.FORGE_ISSUE_PREFIX = 'AI';
+
+      const cfg = await loadConfig();
+
+      expect(cfg.projectContextPath).toBe(
+        resolve(tmp, 'packages/forge/from-env.md'),
+      );
+    });
+
+    it('options-sourced relative path stays cwd-relative', async () => {
+      const cfg = await loadConfig({
+        projectContextPath: './from-opts.md',
+        issuePrefix: 'AI',
+      });
+
+      expect(cfg.projectContextPath).toBe(resolve(tmp, 'from-opts.md'));
     });
   });
 });
