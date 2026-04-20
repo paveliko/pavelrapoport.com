@@ -27,24 +27,24 @@ export class LinearClient {
 
   async fetchIssue(issueKey: string): Promise<LinearIssue> {
     const data = await this.gql<{
-      issues: {
-        nodes: Array<{ id: string; identifier: string; title: string; description: string }>;
-      };
+      issue: { id: string; identifier: string; title: string; description: string } | null;
     }>(
-      `query($key: String!) {
-        issues(filter: { identifier: { eq: $key } }) {
-          nodes { id identifier title description }
+      `query($id: String!) {
+        issue(id: $id) {
+          id
+          identifier
+          title
+          description
         }
       }`,
-      { key: issueKey },
+      { id: issueKey },
     );
 
-    const issue = data.issues.nodes[0];
-    if (!issue) {
+    if (!data.issue) {
       throw new Error(`Linear issue "${issueKey}" not found`);
     }
 
-    return issue;
+    return data.issue;
   }
 
   async addComment(issueId: string, body: string): Promise<void> {
