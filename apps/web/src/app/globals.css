@@ -1,6 +1,6 @@
-@import "tailwindcss";
+@import "@repo/ui/globals.css";
 
-/* ── Design tokens — all via @theme inline (reference CSS vars) ── */
+/* ── Graph-paper brand tokens (layered on top of shadcn neutral tokens) ── */
 @theme inline {
   /* Colors */
   --color-canvas: var(--color-canvas);
