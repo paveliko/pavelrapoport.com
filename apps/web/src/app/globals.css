@@ -8,11 +8,11 @@
   --color-ink-light: var(--color-ink-light);
   --color-blueprint: var(--color-blueprint);
   --color-blueprint-light: var(--color-blueprint-light);
-  --color-accent: var(--color-accent);
-  --color-accent-light: var(--color-accent-light);
+  --color-brand-accent: var(--color-brand-accent);
+  --color-brand-accent-light: var(--color-brand-accent-light);
   --color-grid: var(--color-grid);
   --color-code-bg: var(--color-code-bg);
-  --color-muted: var(--color-muted);
+  --color-ink-muted: var(--color-ink-muted);
   --color-subtle: var(--color-subtle);
 
   /* Fonts — wired from next/font/local CSS vars */
@@ -34,11 +34,11 @@
   --color-ink-light: #3D3D3A;
   --color-blueprint: #4A7FB5;
   --color-blueprint-light: #6B9FD0;
-  --color-accent: #C75B3A;
-  --color-accent-light: #E8795A;
+  --color-brand-accent: #C75B3A;
+  --color-brand-accent-light: #E8795A;
   --color-grid: #E8E6E0;
   --color-code-bg: #F5F3EE;
-  --color-muted: #8A8880;
+  --color-ink-muted: #8A8880;
   --color-subtle: #F0EDE6;
 }
 
@@ -50,11 +50,11 @@
     --color-ink-light: #B4B2A9;
     --color-blueprint: #6B9FD0;
     --color-blueprint-light: #85B7EB;
-    --color-accent: #E8795A;
-    --color-accent-light: #F0997B;
+    --color-brand-accent: #E8795A;
+    --color-brand-accent-light: #F0997B;
     --color-grid: #2C2C2A;
     --color-code-bg: #232322;
-    --color-muted: #888780;
+    --color-ink-muted: #888780;
     --color-subtle: #252524;
   }
 }

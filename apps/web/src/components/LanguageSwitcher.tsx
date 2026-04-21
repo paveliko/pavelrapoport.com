@@ -23,7 +23,7 @@ export function LanguageSwitcher() {
             className={
               locale === loc
                 ? "text-ink font-medium"
-                : "text-muted hover:text-blueprint transition-colors"
+                : "text-ink-muted hover:text-blueprint transition-colors"
             }
           >
             {loc}

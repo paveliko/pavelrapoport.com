@@ -14,16 +14,16 @@ export function ComingSoon() {
         {/* Construction mark — top left */}
         <div className="relative mb-unit-2">
           <div className="absolute -top-3 -left-3">
-            <div className="w-3 h-[1px] bg-accent" />
-            <div className="w-[1px] h-3 bg-accent absolute top-0 left-0" />
+            <div className="w-3 h-[1px] bg-brand-accent" />
+            <div className="w-[1px] h-3 bg-brand-accent absolute top-0 left-0" />
           </div>
           <div className="absolute -top-3 -right-3">
-            <div className="w-3 h-[1px] bg-accent" />
-            <div className="w-[1px] h-3 bg-accent absolute top-0 right-0" />
+            <div className="w-3 h-[1px] bg-brand-accent" />
+            <div className="w-[1px] h-3 bg-brand-accent absolute top-0 right-0" />
           </div>
 
           {/* Status line */}
-          <div className="font-mono text-[10px] tracking-[0.2em] text-accent mb-6">
+          <div className="font-mono text-[10px] tracking-[0.2em] text-brand-accent mb-6">
             {t("status")}
           </div>
 
@@ -45,7 +45,7 @@ export function ComingSoon() {
 
           {/* Tech stack */}
           <div className="mb-unit">
-            <div className="font-mono text-[10px] tracking-[0.15em] text-muted uppercase mb-3">
+            <div className="font-mono text-[10px] tracking-[0.15em] text-ink-muted uppercase mb-3">
               stack
             </div>
             <div className="flex flex-wrap gap-2">
@@ -62,7 +62,7 @@ export function ComingSoon() {
 
           {/* Languages */}
           <div className="mb-unit-2">
-            <div className="font-mono text-[10px] tracking-[0.15em] text-muted uppercase mb-3">
+            <div className="font-mono text-[10px] tracking-[0.15em] text-ink-muted uppercase mb-3">
               languages
             </div>
             <LanguageSwitcher />
@@ -76,19 +76,19 @@ export function ComingSoon() {
             <div className="w-2 h-2 border border-blueprint relative">
               <div className="absolute inset-[3px] bg-blueprint" />
             </div>
-            <span className="font-mono text-xs text-muted">
+            <span className="font-mono text-xs text-ink-muted">
               {t("soon")}
             </span>
           </div>
 
           {/* Construction mark — bottom right */}
           <div className="absolute -bottom-3 -right-3">
-            <div className="w-3 h-[1px] bg-accent absolute bottom-0 right-0" />
-            <div className="w-[1px] h-3 bg-accent absolute bottom-0 right-0" />
+            <div className="w-3 h-[1px] bg-brand-accent absolute bottom-0 right-0" />
+            <div className="w-[1px] h-3 bg-brand-accent absolute bottom-0 right-0" />
           </div>
           <div className="absolute -bottom-3 -left-3">
-            <div className="w-3 h-[1px] bg-accent absolute bottom-0 left-0" />
-            <div className="w-[1px] h-3 bg-accent absolute bottom-0 left-0" />
+            <div className="w-3 h-[1px] bg-brand-accent absolute bottom-0 left-0" />
+            <div className="w-[1px] h-3 bg-brand-accent absolute bottom-0 left-0" />
           </div>
         </div>
       </div>
