@@ -30,6 +30,10 @@ const envSchema = z.object({
 
   // Public URLs (optional — set per environment)
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
+
+  // Studio access control — comma-separated list of emails allowed
+  // to access studio.pavelrapoport.com (optional in dev, required in prod)
+  STUDIO_ALLOWED_EMAILS: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
