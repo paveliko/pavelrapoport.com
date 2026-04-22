@@ -1,0 +1,8 @@
+schema: spec-driven
+id: 2026-04-23-add-studio-layout-shell
+status: proposed
+created: 2026-04-23
+domains:
+  - studio
+  - ui
+linear: AI-65

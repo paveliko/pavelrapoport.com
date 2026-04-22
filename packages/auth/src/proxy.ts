@@ -55,6 +55,7 @@ export function createAuthProxy(config?: AuthProxyConfig) {
     if (user && pathname === loginUrl) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
+      url.search = "";
       return NextResponse.redirect(url);
     }
 

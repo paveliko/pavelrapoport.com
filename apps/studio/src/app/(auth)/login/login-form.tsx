@@ -1,29 +1,42 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
-import { sendMagicLink, signInWithGoogleAction } from "./actions";
+import { createBrowserClient } from "@supabase/ssr";
+import { useActionState, useState } from "react";
+
+import { sendMagicLink } from "./actions";
 
 const magicLinkInitial = { success: false, error: null as string | null };
-const googleInitial = {
-  url: null as string | null,
-  error: null as string | null,
-};
 
 export function LoginForm() {
   const [magicState, magicAction, magicPending] = useActionState(
     sendMagicLink,
     magicLinkInitial
   );
-  const [googleState, googleAction, googlePending] = useActionState(
-    signInWithGoogleAction,
-    googleInitial
-  );
+  const [googlePending, setGooglePending] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (googleState.url) {
-      window.location.assign(googleState.url);
+  async function handleGoogleSignIn() {
+    setGoogleError(null);
+    setGooglePending(true);
+
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${siteUrl}/auth/callback` },
+    });
+
+    if (error) {
+      setGoogleError(error.message);
+      setGooglePending(false);
     }
-  }, [googleState.url]);
+  }
 
   if (magicState.success) {
     return (
@@ -36,27 +49,22 @@ export function LoginForm() {
     );
   }
 
-  const googleButtonLabel = googlePending
-    ? "Redirecting..."
-    : googleState.url
-      ? "Redirecting..."
-      : "Continue with Google";
-
   return (
     <div className="space-y-4">
-      <form action={googleAction}>
+      <div>
         <button
-          type="submit"
-          disabled={googlePending || Boolean(googleState.url)}
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={googlePending}
           className="flex w-full items-center justify-center gap-2 rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50 disabled:opacity-50"
         >
           <GoogleLogo />
-          {googleButtonLabel}
+          {googlePending ? "Redirecting..." : "Continue with Google"}
         </button>
-        {googleState.error && (
-          <p className="mt-2 text-sm text-red-600">{googleState.error}</p>
+        {googleError && (
+          <p className="mt-2 text-sm text-red-600">{googleError}</p>
         )}
-      </form>
+      </div>
 
       <div className="flex items-center gap-3">
         <div className="h-px flex-1 bg-neutral-200" />

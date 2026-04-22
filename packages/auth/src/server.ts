@@ -71,14 +71,6 @@ export async function signInWithMagicLink(
   });
 }
 
-export async function signInWithGoogle(redirectTo: string) {
-  const supabase = await createAuthServerClient();
-  return supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo },
-  });
-}
-
 export async function exchangeCodeForSession(code: string) {
   const supabase = await createAuthServerClient();
   return supabase.auth.exchangeCodeForSession(code);

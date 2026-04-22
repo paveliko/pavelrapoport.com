@@ -22,22 +22,14 @@ vi.mock("../supabase", () => ({
   })),
 }));
 
-function makeRequest(pathname: string) {
+function makeRequest(pathname: string, search = "") {
+  const base = "https://studio.pavelrapoport.com";
   return {
     nextUrl: {
       pathname,
+      search,
       clone() {
-        const searchParams = new URLSearchParams();
-        const clone = {
-          pathname,
-          searchParams,
-          search: "",
-          toString() {
-            const qs = searchParams.toString();
-            return `https://studio.pavelrapoport.com${clone.pathname}${qs ? `?${qs}` : ""}`;
-          },
-        };
-        return clone as unknown as URL;
+        return new URL(`${base}${pathname}${search}`);
       },
     },
   } as unknown as import("next/server").NextRequest;
@@ -105,5 +97,23 @@ describe("createAuthProxy — whitelist", () => {
     await proxy(makeRequest("/auth/callback"));
     expect(signOutMock).not.toHaveBeenCalled();
     expect(redirectMock).not.toHaveBeenCalled();
+  });
+
+  it("strips search when redirecting authenticated user off /login (no loop)", async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: { email: "pavel@pavelrapoport.com" } },
+    });
+    const { createAuthProxy } = await import("../proxy");
+    const proxy = createAuthProxy({
+      publicRoutes: ["/login", "/auth/callback"],
+      allowedEmails: ["pavel@pavelrapoport.com"],
+    });
+    await proxy(makeRequest("/login", "?error=session_expired"));
+    expect(redirectMock).toHaveBeenCalledOnce();
+    const redirectedUrl = redirectMock.mock.calls[0]![0] as unknown as URL;
+    const href = redirectedUrl.toString();
+    expect(href).toContain("/");
+    expect(href).not.toContain("error=session_expired");
+    expect(href).not.toContain("?");
   });
 });

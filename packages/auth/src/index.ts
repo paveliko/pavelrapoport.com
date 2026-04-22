@@ -5,7 +5,6 @@ export {
   requireAdmin,
   signOut,
   signInWithMagicLink,
-  signInWithGoogle,
   exchangeCodeForSession,
 } from "./server";
 export { createAuthProxy } from "./proxy";
