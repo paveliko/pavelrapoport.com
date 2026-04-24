@@ -16,9 +16,9 @@ The visual language for `pavelrapoport.com` surfaces — landing, Studio workspa
 - Thin cool-blue technical dividers
 - Warm ivory surface for public-facing screens; dark variant for the internal workspace
 
-Claude Design produced screen-level references for Dashboard, Projects list, Muse canvas, and Snapshot artifact. The system is visually coherent and ready to codify.
+Claude Design produced screen-level references for Dashboard, Projects list, Muse canvas, and Snapshot artifact, plus a ready-to-paste implementation targeting the existing shadcn setup in `packages/ui`. The system is visually coherent and codified.
 
-**Current state of `packages/ui`:** The package exists but contains no standardized primitive layer and no codified tactical components. Each new screen re-implements frame, status, and meta patterns from scratch.
+**Current state of `packages/ui`:** The package is already installed with the shadcn baseline (≈20 primitives, `cn` helper, `cva`, `tw-animate-css`, `lucide-react`, React 19, Tailwind 4, `@custom-variant dark (&:is(.dark *))` wiring). `globals.css` still carries shadcn's neutral grey tokens. No tactical signature components exist yet.
 
 ## Why now
 
@@ -30,25 +30,27 @@ Three forcing functions:
 
 ## What changes
 
-- `packages/ui` receives a **shadcn/ui baseline** (Radix primitives with Tailwind styling, copied into the package — owned code, not dependency)
-- **Design tokens** defined as CSS variables in two surface modes: `surface-ivory` and `surface-dark`
-- **Seven signature components** added:
-  - `TacticalFrame` — wrapper with four corner brackets, optional deploy-from-center animation
-  - `MonoLabel` — uppercase mono with tone variants
-  - `StatusPill` — MonoLabel + colored indicator square
-  - `TechPill` — rectangular frame for tech-stack pills
-  - `DividerTechnical` — thin cool-blue divider with optional inline label
-  - `MetaBar` — technical row (status · stage · route · metric)
-  - `ScanReveal` — animation wrapper for mount reveals
-- `apps/web` and `apps/studio` **wired** to consume `@repo/ui`, each committing to one surface mode at layout level
+- **Brand palette onto the existing shadcn tokens.** `packages/ui/src/styles/globals.css` keeps its current structure — `@theme inline`, `:root` / `.dark`, variable names — and swaps the oklch values to the Rapoport Studio palette: warm ivory background, near-black ink, terracotta primary (`#C75B3A`), cool-blue accent (`#4A7FB5`), with a matching lifted-for-dark variant (`#E8795A` / `#6B9FD0`). `--radius` drops from `0.625rem` to `0.125rem` for the sharp-corner tactical feel.
+- **Six tactical signature components** added to `packages/ui/src/components/`:
+  - `TacticalFrame` — wrapper with four corner brackets; optional deploy-from-center animation on mount, per-card `staggerIndex`
+  - `MonoLabel` — uppercase mono caption with `tone` / `size` variants
+  - `StatusPill` — single-word state readout with indicator dot and optional pulse
+  - `TechPill` — key/value metadata chip with a split rule
+  - `DividerTechnical` — 1 px rule with optional mono label cut into it
+  - `MetaBar` — thin mono strip (top/bottom) with `left` / `right` slots
+- **Motion via CSS keyframes.** Two keyframes (`tactical-bracket-deploy`, `tactical-line-deploy`) land in `globals.css`, guarded by `prefers-reduced-motion`. No JS-driven animation library is added.
+- **No runtime theme toggle.** Light is the public surface; `.dark` on the surface root switches to the workspace palette. A surface commits to its mode at the consuming app/layout level.
 
 ## What is out of scope
 
 - No changes to `packages/db`, `packages/muse`, `packages/i18n`, `packages/openspec`
-- No migration of existing landing page content to the new components — that's a follow-up change once baseline is verified
+- No migration of existing landing page content to the new components — that's a follow-up change
 - No Canvas entity-node implementation — separate change, depends on this
 - No Entity View system (`inline/row/card/detail`) from the UI Gatekeeper skill — separate change, reuses this signature layer
-- **No runtime theme toggle.** Each surface commits to its mode at build time.
+- No `surface-ivory` / `surface-dark` classes, HSL token rewrite, or `@theme inline` rename — we keep the shadcn variable names and the `:root` / `.dark` split
+- No `ScanReveal` primitive, no Framer Motion dependency — deploy-from-center is pure CSS keyframes
+- No new shadcn primitive re-installation, no `tailwind.config.ts` preset, no `packages/ui/src/styles/fonts.css` wiring — fonts remain wired per-app as they are today
+- No playground route in `apps/studio` and no rewiring of `apps/web` / `apps/studio` layouts
 
 ## Reads
 
@@ -56,12 +58,12 @@ Before implementing, review:
 
 - `openspec/specs/design/spec.md` — extend it via this delta
 - `muse-studio-spec-v1.1.md` — surface architecture (Canvas / Studio / Pipeline)
-- Claude Design reference screens (Dashboard v2, Projects table, Muse canvas, Snapshot) — visual ground truth
+- Claude Design handoff bundle — `README.md`, `SKILL.md`, `colors_and_type.css`, and `packages/ui/` subtree — visual and implementation ground truth
 
 ## Success criteria
 
-- Both `apps/web` and `apps/studio` build and render using tokens from `@repo/ui`
-- A playground route exercises every primitive and signature component in both surface modes without warnings
-- A spot-rebuild of one existing landing section using new components is visually indistinguishable from the current production render
-- `pnpm check-types` and `pnpm build` pass monorepo-wide
-- Next visual change to the system requires editing exactly one file (`globals.css`)
+- `packages/ui/src/styles/globals.css` compiles with the brand oklch palette and `--radius: 0.125rem`; variable names and structure are unchanged
+- Six tactical components type-check and are importable from `@repo/ui/components/*` using the existing export map
+- `pnpm typecheck`, `pnpm lint`, and `pnpm build` pass monorepo-wide
+- `apps/studio` (which already imports `@repo/ui/globals.css`) picks up the new palette; `apps/web` (which layers its own `--color-*` tokens on top) is visually unchanged
+- Corner-bracket deploy animation runs on mount and is suppressed under `prefers-reduced-motion: reduce`

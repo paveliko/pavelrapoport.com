@@ -1,271 +1,227 @@
 # Design: Tactical UI baseline
 
-Technical approach for adding shadcn-based primitives and tactical signature components to `@repo/ui`.
+Technical approach for applying the Rapoport Studio brand palette to the existing shadcn setup in `@repo/ui` and adding six tactical signature components.
 
 ---
 
 ## Directory structure
 
+No restructuring. We land on the existing shadcn layout:
+
 ```
 packages/ui/
-├── components.json                    # shadcn config (custom path)
 ├── package.json
 ├── tsconfig.json
-├── tailwind.config.ts                 # preset, extended by both apps
 └── src/
-    ├── index.ts                       # barrel export
-    ├── styles/
-    │   ├── globals.css                # tokens + surface modes + base layer
-    │   └── fonts.css                  # @font-face declarations
     ├── lib/
-    │   └── cn.ts                      # clsx + tailwind-merge utility
-    ├── primitives/                    # shadcn-copied, owned
-    │   ├── button.tsx
-    │   ├── input.tsx
-    │   ├── textarea.tsx
-    │   ├── label.tsx
-    │   ├── dialog.tsx
-    │   ├── sheet.tsx
-    │   ├── dropdown-menu.tsx
-    │   ├── popover.tsx
-    │   ├── tooltip.tsx
-    │   ├── tabs.tsx
-    │   ├── separator.tsx
-    │   ├── scroll-area.tsx
-    │   ├── command.tsx
-    │   └── toast.tsx
-    └── tactical/                      # signature layer
-        ├── tactical-frame.tsx
-        ├── mono-label.tsx
-        ├── status-pill.tsx
-        ├── tech-pill.tsx
-        ├── divider-technical.tsx
-        ├── meta-bar.tsx
-        └── scan-reveal.tsx
+    │   └── utils.ts                  # cn() — already present
+    ├── styles/
+    │   └── globals.css                # shadcn tokens + tactical keyframes
+    └── components/
+        ├── button.tsx                 # (existing shadcn primitives, unchanged)
+        ├── …
+        ├── tactical-frame.tsx         # NEW
+        ├── mono-label.tsx             # NEW
+        ├── status-pill.tsx            # NEW
+        ├── tech-pill.tsx              # NEW
+        ├── divider-technical.tsx      # NEW
+        └── meta-bar.tsx               # NEW
 ```
+
+We keep the existing export map in [`packages/ui/package.json`](../../../packages/ui/package.json):
+
+```json
+"exports": {
+  "./globals.css": "./src/styles/globals.css",
+  "./components/*": "./src/components/*.tsx",
+  "./lib/*": "./src/lib/*.ts"
+}
+```
+
+Consumers import `import { TacticalFrame } from "@repo/ui/components/tactical-frame"` alongside the existing `import { Button } from "@repo/ui/components/button"`.
 
 ## Design tokens
 
-All tokens live in `src/styles/globals.css` as HSL tuples. Values resolve differently depending on which surface class is active on `<body>`.
+All tokens live in [`packages/ui/src/styles/globals.css`](../../../packages/ui/src/styles/globals.css) on the existing shadcn variable names. We do **not** introduce `surface-ivory` / `surface-dark` classes, HSL tuples, or a parallel token namespace.
 
 ```css
-@layer base {
-  :root {
-    /* Shared across surfaces */
-    --radius-sharp: 0.125rem;
-    --radius-soft:  0.375rem;
+:root {
+  color-scheme: light;
+  --radius: 0.125rem;                           /* was 0.625rem */
 
-    --font-serif: 'Source Serif 4', Georgia, serif;
-    --font-sans:  'Inter', system-ui, sans-serif;
-    --font-mono:  'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  --background: oklch(0.988 0.004 85);          /* #FAFAF8 ivory */
+  --foreground: oklch(0.203 0.003 285);         /* #1C1C1E ink */
+  --primary:    oklch(0.583 0.159 35);          /* #C75B3A terracotta */
+  --accent:     oklch(0.588 0.105 250);         /* #4A7FB5 cool blue */
+  --muted-foreground: oklch(0.600 0.008 85);    /* #8A8880 */
+  --border:     oklch(0.914 0.006 85);          /* #E8E6E0 */
+  --ring:       oklch(0.588 0.105 250);         /* focus = cool blue */
+  /* …secondary, muted, sidebar-*, chart-*, destructive — see globals.css */
+}
 
-    --accent-terracotta: 12 55% 48%;
-    --accent-cool-blue:  210 70% 55%;
-    --accent-success:    140 45% 45%;
-    --accent-muted:      220 8% 50%;
-
-    --duration-fast: 150ms;
-    --duration-base: 240ms;
-    --duration-slow: 420ms;
-    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  /* Ivory — landing, canvas, snapshots */
-  .surface-ivory {
-    --bg:               40 30% 97%;
-    --ink:              20 14% 10%;
-    --ink-muted:        20 10% 40%;
-    --border:           20 10% 85%;
-    --border-technical: var(--accent-cool-blue);
-    --accent:           var(--accent-terracotta);
-  }
-
-  /* Dark — studio workspace */
-  .surface-dark {
-    --bg:               220 12% 8%;
-    --ink:              40 15% 92%;
-    --ink-muted:        220 8% 60%;
-    --border:           220 10% 20%;
-    --border-technical: var(--accent-cool-blue);
-    --accent:           var(--accent-terracotta);
-  }
-
-  body {
-    background: hsl(var(--bg));
-    color: hsl(var(--ink));
-    font-family: var(--font-serif);
-  }
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.183 0.004 260);         /* #1A1A1C */
+  --foreground: oklch(0.914 0.006 85);          /* warm ink */
+  --primary:    oklch(0.684 0.149 35);          /* #E8795A lifted */
+  --accent:     oklch(0.687 0.094 245);         /* #6B9FD0 lifted */
+  --border:     oklch(1 0 0 / 10%);
+  /* … */
 }
 ```
+
+The existing `@theme inline` block binds these to Tailwind utilities (`bg-background`, `text-foreground`, `border-border`, `ring-ring`, etc.) — unchanged. `@custom-variant dark (&:is(.dark *));` stays as-is.
 
 ## Tailwind 4 integration
 
-Tailwind 4 `@theme inline` in `globals.css` binds CSS variables to utility classes:
-
-```css
-@theme inline {
-  --color-background: hsl(var(--bg));
-  --color-foreground: hsl(var(--ink));
-  --color-accent:     hsl(var(--accent));
-  --color-border:     hsl(var(--border));
-  --font-serif:       var(--font-serif);
-  --font-mono:        var(--font-mono);
-  --radius:           var(--radius-sharp);
-}
-```
-
-`packages/ui/tailwind.config.ts` is a preset; both apps extend it.
+No preset, no new config file. `packages/ui/src/styles/globals.css` already declares `@import "tailwindcss"` and `@source "../../../../apps/*/src/**/*.{ts,tsx}"` so Tailwind scans both apps. Each app imports `@repo/ui/globals.css` through its own `globals.css` (already wired).
 
 ## Surface-mode strategy
 
-**Decision:** static per-app surface mode, applied on `<body>` in the root layout. No runtime toggle.
+**Decision:** `.dark` class on the surface root switches the palette. Public surfaces (landing, muse, snapshot) render without `.dark` — warm ivory is the default. The workspace (studio) renders under `.dark` — near-black. Same terracotta, same cool blue, same mono type; only the canvas/ink polarity flips.
 
-- `apps/web/app/layout.tsx` → `<body class="surface-ivory">`
-- `apps/studio/app/layout.tsx` → `<body class="surface-dark">`
-- `apps/web/app/s/[id]/page.tsx` inherits ivory (shareable snapshots stay on public surface)
+- Public: no root class → `:root` tokens
+- Workspace: `<html class="dark">` → `.dark` tokens
+- No runtime toggle; no `prefers-color-scheme` dependency.
 
-Components never hardcode a surface. They read `var(--bg)`, `var(--ink)`, `var(--accent)` and adapt to whatever surface is active.
-
-**Alternative considered and rejected:** `data-theme` attribute + runtime toggle. Adds complexity for a decision that is architecturally per-surface — Studio is never going to be ivory, landing is never going to be dark. Runtime toggle is a user-facing feature, not a design-system feature.
+**Alternative considered and rejected:** `surface-ivory` / `surface-dark` classes with an HSL token rewrite. Rejected because the existing shadcn variable names are already the lingua franca for the installed primitives — renaming them would fork every shadcn component file. The values-only override keeps the library ecosystem intact.
 
 ## Signature components
 
-### `TacticalFrame`
-Wrapper with four corner-bracket SVGs. Corners are thin L-shapes in `--accent` color.
+Six components. All use [`@repo/ui/lib/utils`](../../../packages/ui/src/lib/utils.ts) `cn`, `class-variance-authority` for variants, `data-slot` attributes, and the existing shadcn utility conventions.
+
+### `TacticalFrame` — `"use client"`
+
+Wrapper with four corner L-brackets. Each corner is an absolutely-positioned `<span>` with two border edges drawn from `--bracket-thickness`, colored via `--bracket-color` (resolved from `tone` — `primary` → `var(--primary)`, `accent` → `var(--accent)`, `muted` → `var(--muted-foreground)`, `default` inherits `currentColor`).
 
 ```tsx
-type Props = {
-  children: ReactNode;
-  padding?: 'sm' | 'md' | 'lg';   // default 'md'
-  cornerSize?: 'sm' | 'md' | 'lg'; // default 'md' (12px / 16px / 24px)
-  animated?: boolean;              // default false
-  className?: string;
-};
+type TacticalFrameProps = React.ComponentProps<"div"> & {
+  tone?: "default" | "primary" | "accent" | "muted"
+  size?: "sm" | "md" | "lg"        // 12 / 16 / 24 px brackets
+  label?: React.ReactNode
+  meta?: React.ReactNode
+  animated?: boolean
+  staggerIndex?: number            // 60ms * index → --bracket-delay
+  bordered?: boolean               // 1px frame between the brackets
+}
 ```
 
-When `animated`, corners mount at geometric center with `scale(0) opacity(0)`, spread to their final positions with a 60ms staggered delay and `--ease-out-expo`. Uses Framer Motion. CSS-only fallback under `prefers-reduced-motion: reduce`.
+When `animated`, each corner runs the `tactical-bracket-deploy` keyframe (`560ms cubic-bezier(0.2, 0.7, 0.2, 1)`), starting at the frame's geometric center (`translate(±50%, ±50%) scale(0)`) and settling to the corner position. All four corners deploy simultaneously per frame; frames on the same page stagger via `staggerIndex`.
 
-### `MonoLabel`
-Uppercase monospace text with letter-spacing.
+### `MonoLabel` — server-safe
+
+Uppercase monospace caption with tight letter-spacing. Replaces shadcn silent labels for section headers.
 
 ```tsx
-type Props = {
-  children: ReactNode;
-  tone?: 'neutral' | 'accent' | 'success' | 'danger'; // default 'neutral'
-  size?: 'xs' | 'sm';  // default 'xs'
-  as?: ElementType;    // default 'span'
-};
+type MonoLabelProps = React.ComponentProps<"span"> & {
+  size?: "xs" | "sm" | "md" | "lg"
+  tone?: "default" | "muted" | "primary" | "accent"
+}
 ```
 
-### `StatusPill`
-MonoLabel with a filled square indicator preceding the text.
+### `StatusPill` — server-safe
+
+Single-word state readout. Five statuses (`live`, `deploying`, `draft`, `archived`, `error`). 6 px indicator dot. Optional `pulse` via `animate-pulse`. Sharp corners (`rounded-none`).
 
 ```tsx
-type Props = {
-  status: 'deploying' | 'live' | 'draft' | 'error' | (string & {});
-  label?: string;   // defaults to status in uppercase
-};
+type StatusPillProps = React.ComponentProps<"span"> & {
+  status?: "live" | "deploying" | "draft" | "archived" | "error"
+  pulse?: boolean
+}
 ```
 
-Color mapping: `deploying→terracotta`, `live→cool-blue`, `draft→muted`, `error→red`.
+Color map: `live → --primary` (terracotta), `deploying → --accent` (cool blue), `draft → --muted-foreground`, `archived → --muted-foreground @ 70%`, `error → --destructive`.
 
-### `TechPill`
-Rectangular frame with mono text and thin border. Used for tech-stack chips.
+### `TechPill` — server-safe
+
+Key/value metadata chip. Dim key on the left, bright value on the right, split by a 1 px vertical rule.
 
 ```tsx
-type Props = {
-  children: ReactNode;
-  size?: 'sm' | 'md'; // default 'md'
-};
+type TechPillProps = React.ComponentProps<"span"> & {
+  k: React.ReactNode
+  v: React.ReactNode
+  tone?: "default" | "accent" | "primary" | "muted"
+}
 ```
 
-### `DividerTechnical`
-Thin horizontal line in `--border-technical` (cool-blue). Optional inline label.
+### `DividerTechnical` — server-safe
+
+1 px rule with optional mono label cut into it.
 
 ```tsx
-type Props = {
-  spacing?: 'md' | 'lg';  // default 'md'
-  label?: string;         // inline, MonoLabel styling
-};
+type DividerTechnicalProps = React.ComponentProps<"div"> & {
+  label?: React.ReactNode
+  meta?: React.ReactNode
+  tone?: "default" | "accent" | "primary"
+  align?: "start" | "center" | "end"
+}
 ```
 
-### `MetaBar`
-Horizontal row of technical meta-data. Two slots: `left` (primary status) and `right` (supplementary).
+Rule color resolves via `color-mix(in oklch, var(--accent) 40%, transparent)` for `accent` / `primary` tones — Tailwind 4 passes the declaration through. Unlabeled dividers should use shadcn `<Separator>`; `DividerTechnical` is for the labeled form.
+
+### `MetaBar` — server-safe
+
+Thin (28 px) mono strip with `left` / `right` slots, vertical `divide-x` between children. Hosts meta labels, file paths, tech pills at the top or bottom of a frame / viewport.
 
 ```tsx
-type Props = {
-  left?: ReactNode;
-  right?: ReactNode;
-};
+type MetaBarProps = React.ComponentProps<"div"> & {
+  left?: React.ReactNode
+  right?: React.ReactNode
+  position?: "top" | "bottom"    // flips the border edge
+}
 ```
 
-Used for things like `STATUS: DEPLOYING · STAGE: 1/3 · ROUTE: /MUSE/NEW  |  0 tokens`.
+## Motion
 
-### `ScanReveal`
-Generic mount-animation wrapper.
+Two CSS keyframes in `globals.css`, no JS animation library:
 
-```tsx
-type Props = {
-  children: ReactNode;
-  variant: 'corners' | 'stroke' | 'fade';
-  delay?: number;      // ms, default 0
-  stagger?: number;    // ms between children, default 0
-};
+```css
+@keyframes tactical-bracket-deploy {
+  from {
+    transform: translate(var(--bracket-from-x, 0), var(--bracket-from-y, 0)) scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes tactical-line-deploy {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-tactical-animated] [data-tactical-corner],
+  [data-tactical-animated] [data-tactical-line] {
+    animation: none !important;
+  }
+}
 ```
 
-## Shadcn baseline set (phase 1)
-
-Copy into `src/primitives/`:
-
-| Primitive | Used first in |
-|-----------|---------------|
-| `button` | every screen |
-| `input`, `textarea`, `label` | Muse chat, Project settings |
-| `dialog`, `sheet` | Entity detail panel, Change detail |
-| `dropdown-menu`, `popover` | top-nav, context menus |
-| `tooltip` | iconography |
-| `tabs` | Project workspace (Domain / Creative / Specs / Pipeline) |
-| `separator`, `scroll-area` | layout |
-| `command` | future Muse command palette |
-| `toast` | global feedback |
-
-**Not phase 1** (add when first consumer needs them): `accordion`, `calendar`, `carousel`, `chart`, `select` variants beyond dropdown-menu.
-
-## Fonts
-
-Load via `next/font` in each app layout:
-
-```tsx
-import { Source_Serif_4 } from 'next/font/google';
-import { Geist_Mono } from 'next/font/google';
-
-const serif = Source_Serif_4({ subsets: ['latin'], variable: '--font-serif' });
-const mono  = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' });
-
-<body className={`${serif.variable} ${mono.variable} surface-ivory`}>
-```
-
-Licenses: Source Serif 4 and Geist Mono are both OFL. Document in `packages/ui/README.md`.
-
-## Framer Motion
-
-Add as peer dependency of `@repo/ui`. Required for `TacticalFrame animated` and `ScanReveal`. Other components have no motion dependency. CSS-only paths cover `prefers-reduced-motion: reduce`.
+`tw-animate-css` is already imported; the new keyframes co-exist with its utilities.
 
 ## Consumption contract
 
 ```tsx
-// app code
-import { TacticalFrame, MonoLabel, StatusPill, Button } from '@repo/ui';
-import '@repo/ui/styles/globals.css';
+// in app code
+import { TacticalFrame } from "@repo/ui/components/tactical-frame"
+import { StatusPill }    from "@repo/ui/components/status-pill"
+import { Button }        from "@repo/ui/components/button"
+import "@repo/ui/globals.css"
 ```
 
 **Invariant:** components in `packages/ui` never import `next-intl` or any i18n runtime. Strings flow as props from the consuming app.
 
 ## Verification approach
 
-A playground route at `apps/studio/src/app/_playground/page.tsx` renders every primitive and signature component on both surface modes (toggle via query param). Used for visual review and type check. Not exposed in production navigation.
+No new playground route. Verification is:
+
+1. `pnpm --filter @repo/ui typecheck`, `pnpm typecheck`, `pnpm lint`, `pnpm build` — all clean.
+2. `pnpm --filter @repo/studio dev` — visit the shell, confirm terracotta `--primary`, cool-blue `--accent`, and sharp `--radius` (2 px) propagate to the shadcn primitives.
+3. Toggle OS "Reduce motion" and confirm `TacticalFrame animated` renders without bracket-deploy animation.
 
 ## Open questions
 
-1. `shadcn` CLI inside `packages/ui` vs hand-copy. **Recommendation:** use the CLI with `components.json` pointing at `src/primitives/`. Benefit: easy updates from upstream when worth it.
-2. Do we ship a Storybook for `@repo/ui`? **Recommendation:** not in this change. The playground route covers internal verification. Storybook is a separate decision tied to whether we intend to open-source any part of this library.
+None remaining for this scope. `ScanReveal`, Framer Motion, fonts.css, playground route, and a Tailwind preset were considered and explicitly deferred when the scope was narrowed by the user.
