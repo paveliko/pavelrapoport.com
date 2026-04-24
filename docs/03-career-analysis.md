@@ -1,5 +1,15 @@
 # Карьерный анализ: Pavel Rapoport
 
+> [!IMPORTANT]
+> **Source of truth for timeline data is `apps/web/src/data/timeline.json`.**
+> This analysis document is **reference only** and must be kept in sync.
+> The JSON file has 16 canonical periods with month-precision dates;
+> the prose below still reflects an earlier, less complete draft and has
+> known discrepancies (missing IDF/LANFUN/Own Studio entries, some
+> incorrect dates and role titles). When they conflict, trust the JSON.
+>
+> Next rewrite of this document should be regenerated from `timeline.json`.
+
 > Компании, домены, экзиты. Что связывает всё это в одну линию.
 > Составлено: 29 марта 2026 (v2 — полная хронология)
 

@@ -9,40 +9,66 @@ export const PERIOD_TYPES = [
   "military",
 ] as const;
 
+// Date strings are either "YYYY" or "YYYY-MM". Plain lexical comparison
+// respects chronological order across both forms.
+const DATE_REGEX = /^\d{4}(-\d{2})?$/;
+const ID_REGEX = /^\d{2}$/;
+
+export const LocationSchema = z.object({
+  city: z.string().min(1).optional(),
+  country: z.string().min(1),
+});
+
+export const LinkSchema = z.object({
+  pivotedInto: z.string().regex(ID_REGEX).optional(),
+  pivotedFrom: z.string().regex(ID_REGEX).optional(),
+});
+
 export const PeriodSchema = z
   .object({
-    id: z
-      .string()
-      .min(1)
-      .regex(/^[a-z0-9-]+$/, "id must be lowercase alphanumeric with dashes"),
-    type: z.enum(PERIOD_TYPES),
-    startYear: z.number().int().min(1900).max(2100),
-    endYear: z.number().int().min(1900).max(2100).nullable(),
-    ongoing: z.boolean().optional().default(false),
+    id: z.string().regex(ID_REGEX, "id must be a two-digit string (01..99)"),
+    start: z.string().regex(DATE_REGEX, "start must be YYYY or YYYY-MM"),
+    startApprox: z.boolean().optional(),
+    end: z.string().regex(DATE_REGEX).nullable(),
+    endApprox: z.boolean().optional(),
+    ongoing: z.boolean(),
     organization: z.string().min(1),
+    location: LocationSchema,
     role: z.string().min(1),
-    location: z.string().min(1),
-    tech: z.array(z.string().min(1)).optional(),
+    type: z.enum(PERIOD_TYPES),
     summary: z.string().min(1),
     notable: z.array(z.string().min(1)).optional(),
+    tech: z.array(z.string().min(1)),
+    link: LinkSchema.optional(),
   })
   .refine(
-    (p) => p.endYear === null || p.endYear >= p.startYear,
-    "endYear must be >= startYear or null",
+    (p) => p.end === null || p.end >= p.start,
+    "end must be >= start or null",
   )
   .refine(
-    (p) => !p.ongoing || p.endYear === null,
-    "ongoing periods must have endYear: null",
+    (p) => !p.ongoing || p.end === null,
+    "ongoing periods must have end: null",
   );
+
+export const MetaSchema = z.object({
+  subject: z.string().min(1),
+  generated: z.string().min(1), // ISO date string; not parsed, just a marker
+  version: z.string().min(1),
+  scope: z.string().min(1),
+  note: z.string().optional(),
+});
 
 export const TimelineSchema = z.object({
   $schema: z.literal("timeline-data/v1"),
+  meta: MetaSchema.optional(),
   periods: z.array(PeriodSchema).min(1),
 });
 
+export type Location = z.infer<typeof LocationSchema>;
 export type Period = z.infer<typeof PeriodSchema>;
 export type PeriodType = (typeof PERIOD_TYPES)[number];
 export type Timeline = z.infer<typeof TimelineSchema>;
+export type TimelineMeta = z.infer<typeof MetaSchema>;
 
 export const ACCENT_TOKENS = [
   "accent-origin",
@@ -54,8 +80,8 @@ export const ACCENT_TOKENS = [
 ] as const;
 export type AccentToken = (typeof ACCENT_TOKENS)[number];
 
-// Leading word boundary only: "Lead" and "Leader" both match at a token
-// boundary, but "pleaded" won't. Covers Architect / Lead / Team Leader.
+// Leading word boundary only: matches "Lead" and "Leader" at token start
+// but not "pleaded". Covers Architect / Lead / Team Leader.
 const ARCHITECT_ROLE_REGEX = /\b(architect|lead)/i;
 
 export function getPeriodAccent(period: Period): AccentToken {
@@ -74,6 +100,22 @@ export function getPeriodAccent(period: Period): AccentToken {
         ? "accent-architect"
         : "text-tertiary";
   }
+}
+
+// SVG axis math needs a numeric year. Dates are "YYYY" or "YYYY-MM" —
+// both start with the year, so slicing the first 4 chars is safe.
+export function getStartYear(period: Period): number {
+  return Number.parseInt(period.start.slice(0, 4), 10);
+}
+
+export function getEndYear(period: Period, fallbackYear: number): number {
+  return period.end === null
+    ? fallbackYear
+    : Number.parseInt(period.end.slice(0, 4), 10);
+}
+
+export function formatLocation(loc: Location): string {
+  return loc.city ? `${loc.city}, ${loc.country}` : loc.country;
 }
 
 // Validate once at module load. Throws and halts the RSC build on any
