@@ -6,5 +6,26 @@
     "heading": "Project assembling",
     "description": "Architecture defined. Foundation laid. Now building — every component falling into place.",
     "soon": "Posts coming soon"
+  },
+  "home": {
+    "about": {
+      "origin": {
+        "headline": "It started in 1990, in the abandoned observatory of the Pioneer Palace.",
+        "body": "I was ten years old. There was no internet in Chișinău yet. I wrote my first game — Arkanoid — in Basic, on a ДВК. The same year, I placed second in the district math olympiad.\n\nI've been writing code ever since. Thirty-five years."
+      },
+      "career": {
+        "srHeading": "Career",
+        "intro": "Israel. Twenty-six years. Two startups I founded. A design system shipped alone in under a year. Six years as Frontend Architect at Zerto, through the HPE acquisition. 1,498 commits on the final product.",
+        "timeline": {
+          "axisLabel": "Career timeline, 2000 to present",
+          "presentLabel": "present",
+          "description": "Sixteen career periods from 1990 to 2026. Each square represents one period, sized larger for highlighted periods. The detached square at the far left is the 1990 origin, joined to the main 2000 to 2026 axis by a dotted bridge."
+        }
+      },
+      "pivot": {
+        "headline": "In 2026, I stopped writing code by hand.",
+        "body": "After 35 years, I realized the bottleneck was never the typing. It was the thinking upstream of the code. The spec.\n\nToday I design systems in OpenSpec — a format made for humans and machines. Architecture first. Then AI writes the code, under my supervision. I review every decision. I own every line. But my hands are on the blueprint, not the keyboard.\n\nI'm also building something bigger: a Canvas for OpenSpec. Large specifications deserve to be explored visually, not read top-to-bottom. That work is in progress.\n\nToday I'm a Product Architect. Based in Chișinău. Working with founders across the EU."
+      }
+    }
   }
 }

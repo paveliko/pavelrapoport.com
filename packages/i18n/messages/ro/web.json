@@ -6,5 +6,26 @@
     "heading": "Proiect în asamblare",
     "description": "Arhitectura definită. Fundația pusă. Acum construim — fiecare componentă își găsește locul.",
     "soon": "Articole în curând"
+  },
+  "home": {
+    "about": {
+      "origin": {
+        "headline": "A început în 1990, în observatorul abandonat al Palatului Pionierilor.",
+        "body": "Aveam zece ani. Internetul încă nu ajunsese la Chișinău. Am scris primul meu joc — Arkanoid — în Basic, pe un ДВК. În același an am luat locul doi la olimpiada raională de matematică.\n\nDe atunci scriu cod. Treizeci și cinci de ani."
+      },
+      "career": {
+        "srHeading": "Cariera",
+        "intro": "Israel. Douăzeci și șase de ani. Două startup-uri fondate de mine. Un design system livrat de unul singur în mai puțin de un an. Șase ani ca Frontend Architect la Zerto, trecând prin achiziția HPE. 1.498 de commit-uri în produsul final.",
+        "timeline": {
+          "axisLabel": "Cariera mea, din 2000 până în prezent",
+          "presentLabel": "prezent",
+          "description": "Șaisprezece perioade de carieră, din 1990 până în 2026. Fiecare pătrat este o perioadă, pătratele mai mari marchează perioadele cheie. Pătratul detașat din stânga marchează originea din 1990, conectat de axa principală 2000–2026 printr-o linie punctată."
+        }
+      },
+      "pivot": {
+        "headline": "În 2026 am încetat să scriu cod de mână.",
+        "body": "După 35 de ani, am înțeles că blocajul nu era niciodată la tastat. Era în gândirea de dinaintea codului. În specificație.\n\nAstăzi proiectez sisteme în OpenSpec — un format făcut pentru oameni și mașini. Întâi arhitectura. Apoi AI-ul scrie codul, sub supravegherea mea. Revăd fiecare decizie. Răspund pentru fiecare linie. Dar mâinile mele sunt pe planul de construcție, nu pe tastatură.\n\nÎn paralel construiesc ceva mai mare: un Canvas pentru OpenSpec. Specificațiile mari merită explorate vizual, nu citite de sus în jos. Lucrarea este în curs.\n\nAstăzi sunt arhitect de produs. Baza e la Chișinău. Lucrez cu fondatori din toată Uniunea Europeană."
+      }
+    }
   }
 }

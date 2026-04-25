@@ -7,6 +7,7 @@ import { inter, lora, jetbrainsMono } from "../fonts";
 import "../globals.css";
 import { Footer } from "@/components/Footer";
 import { GridOverlay } from "@/components/GridOverlay";
+import { AxeInit } from "@/components/dev/AxeInit";
 import { BreakpointIndicator } from "@/components/dev/BreakpointIndicator";
 
 type Params = { locale: string };
@@ -71,7 +72,7 @@ export default async function LocaleLayout({
       className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-dvh flex flex-col bg-canvas text-ink font-serif">
+      <body className="min-h-dvh flex flex-col bg-background text-foreground font-serif">
         <NextIntlClientProvider messages={messages}>
           <main className="flex-1 flex max-w-(--container-content) w-full mx-auto px-6 md:px-12">
             {children}
@@ -80,6 +81,7 @@ export default async function LocaleLayout({
         </NextIntlClientProvider>
         {process.env.NODE_ENV === "development" && <GridOverlay />}
         {process.env.NODE_ENV === "development" && <BreakpointIndicator />}
+        {process.env.NODE_ENV === "development" && <AxeInit />}
       </body>
     </html>
   );
