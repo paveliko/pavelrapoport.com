@@ -218,6 +218,27 @@
   }
 }
 
+/* ------------------------------------------------------------
+   About-section period flash — 1.5s soft highlight on a list
+   item after the timeline strip jumps to it. Triggered by the
+   strip's defaultActivate setting data-period-flashing.
+   ------------------------------------------------------------ */
+@keyframes about-period-flash {
+  0%   { background-color: var(--secondary); }
+  60%  { background-color: var(--secondary); }
+  100% { background-color: transparent; }
+}
+
+[data-period-flashing="true"] {
+  animation: about-period-flash 1.5s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-period-flashing="true"] {
+    animation: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

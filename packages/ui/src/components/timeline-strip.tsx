@@ -63,14 +63,34 @@ const TICK_HEIGHT = 6
 const SQUARE_SIZE_NORMAL = 10
 const SQUARE_SIZE_HIGHLIGHTED = 14
 
+const FLASH_DURATION_MS = 1500
+
 function defaultActivate(id: string) {
   if (typeof document === "undefined") return
   const target = document.getElementById(`period-${id}`)
   if (!target) return
-  target.scrollIntoView({ behavior: "smooth", block: "start" })
-  if (target instanceof HTMLElement) {
-    target.focus({ preventScroll: true })
+
+  // Update URL hash so the link is shareable. replaceState avoids
+  // creating a history entry per click — back button skips back to
+  // wherever the user actually came from, not through every square.
+  if (typeof window !== "undefined") {
+    window.history.replaceState(null, "", `#period-${id}`)
   }
+
+  target.scrollIntoView({ behavior: "smooth", block: "start" })
+  if (!(target instanceof HTMLElement)) return
+
+  target.focus({ preventScroll: true })
+
+  // 1.5s flash via CSS animation on data-period-flashing. Remove first
+  // and force reflow so re-clicking the same square re-triggers the
+  // animation instead of doing nothing.
+  target.removeAttribute("data-period-flashing")
+  void target.offsetWidth
+  target.setAttribute("data-period-flashing", "true")
+  window.setTimeout(() => {
+    target.removeAttribute("data-period-flashing")
+  }, FLASH_DURATION_MS)
 }
 
 function yearToX(
