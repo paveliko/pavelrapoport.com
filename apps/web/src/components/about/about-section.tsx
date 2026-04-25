@@ -1,16 +1,19 @@
+import { useTranslations } from "next-intl";
+
+import { OriginAct } from "./origin-act";
 import { TimelineWithList } from "./timeline-with-list";
 
 /**
  * AboutSection — page-level assembly for the homepage About region.
  *
- * Layout shell with three vertical slots: Origin act, Career block
- * (intro + strip + list), Pivot act. The Career block is wired now;
- * Origin and Pivot are empty placeholders until §6.2 / §6.4 land.
+ * Layout shell with three vertical slots: Origin act (live as of §6.2),
+ * Career block (intro + strip + list — intro lands in §6.3), Pivot act
+ * (lands in §6.4).
  *
  * This file is the seam between i18n / data and the @repo/ui primitives.
- * `axisLabel` and `presentLabel` arrive as props from the page above
- * (which will resolve them via next-intl in a later subsection); the
- * @repo/ui components below stay free of next-intl imports.
+ * It calls `useTranslations("home.about")` and passes resolved strings
+ * down to its children. The @repo/ui components below stay free of
+ * next-intl imports per spec.
  *
  * Anchor: id="about". When the homepage gets a top-nav (separate
  * follow-up issue, not this change), the nav's "About" link targets
@@ -28,6 +31,8 @@ export function AboutSection({
   axisLabel,
   presentLabel,
 }: AboutSectionProps) {
+  const t = useTranslations("web.home.about");
+
   return (
     <section
       id="about"
@@ -38,8 +43,12 @@ export function AboutSection({
         About Pavel
       </h2>
 
-      {/* §6.2 — OriginAct lands here */}
-      <div data-slot="origin-act" />
+      <div data-slot="origin-act">
+        <OriginAct
+          headline={t("origin.headline")}
+          body={t("origin.body")}
+        />
+      </div>
 
       <div data-slot="career-block" className="mt-16">
         {/* §6.3 — Career intro paragraph lands above the strip */}
