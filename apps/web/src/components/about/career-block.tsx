@@ -34,7 +34,7 @@ export function CareerBlock({
 }: CareerBlockProps) {
   return (
     <div className="space-y-12">
-      <h3 className="sr-only">{srHeading}</h3>
+      <h2 className="sr-only">{srHeading}</h2>
       <p className="max-w-3xl text-lg leading-relaxed text-foreground">
         {intro}
       </p>

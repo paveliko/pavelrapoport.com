@@ -16,9 +16,8 @@ const CURRENT_YEAR = 2026;
  * translated.
  */
 export default function TimelinePage() {
-  return (
-    <main className="min-h-screen bg-background text-foreground">
-      <AboutSection axisEndYear={CURRENT_YEAR} />
-    </main>
-  );
+  // The locale layout already wraps page output in <main>; the page
+  // returns the section directly so we don't end up with two main
+  // landmarks.
+  return <AboutSection axisEndYear={CURRENT_YEAR} />;
 }

@@ -84,9 +84,11 @@
   --secondary: oklch(0.948 0.007 85);           /* #F0EDE6 */
   --secondary-foreground: oklch(0.203 0.003 285);
 
-  /* Muted = captions / meta */
+  /* Muted = captions / meta. Darkened from 0.600 to 0.520 so muted
+     text on the ivory background satisfies WCAG AA contrast (4.5:1
+     for normal text). axe-core was flagging the previous value. */
   --muted: oklch(0.948 0.007 85);
-  --muted-foreground: oklch(0.600 0.008 85);    /* #8A8880 */
+  --muted-foreground: oklch(0.520 0.008 85);
 
   /* Accent = cool blue (blueprint, links, technical lines) */
   --accent: oklch(0.588 0.105 250);             /* #4A7FB5 */
@@ -151,8 +153,10 @@
   --secondary: oklch(0.253 0.004 260);
   --secondary-foreground: oklch(0.914 0.006 85);
 
+  /* Lifted from 0.580 to 0.700 so muted text on the near-black dark
+     background satisfies WCAG AA contrast. */
   --muted: oklch(0.253 0.004 260);
-  --muted-foreground: oklch(0.580 0.006 85);    /* #888780 */
+  --muted-foreground: oklch(0.700 0.006 85);
 
   /* Accent = cool blue, lifted for dark */
   --accent: oklch(0.687 0.094 245);             /* #6B9FD0 */

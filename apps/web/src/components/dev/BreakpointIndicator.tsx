@@ -44,6 +44,7 @@ export function BreakpointIndicator() {
     <div
       className="fixed inset-0 pointer-events-none z-[99]"
       aria-hidden="true"
+      data-axe-skip="true"
     >
       {BREAKPOINTS.map((bp) => {
         if (vw < bp.width) return null;

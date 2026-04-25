@@ -39,9 +39,9 @@ export function AboutSection({ axisEndYear }: AboutSectionProps) {
       aria-labelledby="about-heading"
       className="mx-auto w-full max-w-5xl px-6 py-16 md:px-12 md:py-24"
     >
-      <h2 id="about-heading" className="sr-only">
+      <h1 id="about-heading" className="sr-only">
         About Pavel
-      </h2>
+      </h1>
 
       <div data-slot="origin-act">
         <OriginAct

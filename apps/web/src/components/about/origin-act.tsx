@@ -34,9 +34,9 @@ export function OriginAct({ headline, body }: OriginActProps) {
         <ArkanoidIcon size={96} />
       </div>
       <div className="flex-1 space-y-4">
-        <h3 className="text-2xl font-medium leading-tight tracking-tight md:text-3xl">
+        <h2 className="text-2xl font-medium leading-tight tracking-tight md:text-3xl">
           {headline}
-        </h3>
+        </h2>
         <div className="space-y-3 text-base leading-relaxed text-foreground">
           {paragraphs.map((p, i) => (
             <p key={i}>{p}</p>

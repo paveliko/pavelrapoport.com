@@ -28,9 +28,9 @@ export function PivotAct({ headline, body }: PivotActProps) {
 
   return (
     <div className="border-l-2 border-l-accent-current pl-6 md:pl-10">
-      <h3 className="text-4xl font-medium leading-tight tracking-tight text-accent-current md:text-5xl">
+      <h2 className="text-4xl font-medium leading-tight tracking-tight text-accent-current md:text-5xl">
         {headline}
-      </h3>
+      </h2>
       <div className="mt-8 max-w-3xl space-y-5 text-base leading-relaxed text-foreground md:text-lg">
         {paragraphs.map((p, i) => (
           <p key={i}>{p}</p>
